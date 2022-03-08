@@ -1,0 +1,44 @@
+{
+  "app": {
+    "singleton": true,
+    "bundleName": "com.ohos.settingsdata",
+    "vendor": "ohos",
+    "version": {
+      "code": 1000000,
+      "name": "1.0.0"
+    }
+  },
+  "deviceConfig": {
+    "default" : {
+      "keepAlive" : true
+    }
+  },
+  "module": {
+    "package": "com.ohos.settingsdata",
+    "name": "com.ohos.settingsdata.MyApplication",
+    "mainAbility": ".data",
+    "deviceType": [
+      "phone"
+    ],
+    "distro": {
+      "deliveryWithInstall": true,
+      "moduleName": "phone",
+      "moduleType": "feature",
+      "installationFree": false
+    },
+    "abilities": [
+      {
+        "srcPath": "DataAbility",
+        "name": ".data",
+        "icon": "$media:icon",
+        "srcLanguage": "ets",
+        "description": "$string:dataability_description",
+        "type": "data",
+        "uri": "dataability://com.ohos.settingsdata.DataAbility",
+        "visible": true,
+        "launchType": "singleton",
+        "label": "$string:entry_MainAbility"
+      }
+    ]
+  }
+}

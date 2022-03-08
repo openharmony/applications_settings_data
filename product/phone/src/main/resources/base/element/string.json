@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "entry_MainAbility",
+      "value": "SettingsData"
+    },
+    {
+      "name": "mainability_description",
+      "value": "ETS_Empty Ability"
+    },
+    {
+      "name": "dataability_description",
+      "value": "hap sample empty provider"
+    }
+  ]
+}
