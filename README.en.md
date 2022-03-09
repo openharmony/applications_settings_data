@@ -18,7 +18,7 @@ Settingsdata application is a system application in openharmony system, which pr
 │           └── main
 │               ├── ets
 │               │   ├── DataAbility           # Using DataAbility  to provide database services
-│               │   └── utils                 # utils files
+│               │   └── Utils                 # Utils files
 │               └── resources
 │                   ├── base
 │                   └── rawfile
