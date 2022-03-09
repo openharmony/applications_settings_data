@@ -17,7 +17,7 @@
 import data_storage from '@ohos.data.storage';
 import fileio from '@ohos.fileio';
 import ohosDataRdb from '@ohos.data.rdb';
-import SettingsDataConfig from '../utils/SettingsDataConfig';
+import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import deviceinfo from '@ohos.deviceinfo';
 
 let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME} (`

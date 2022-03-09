@@ -6,11 +6,11 @@
     },
     {
       "name": "mainability_description",
-      "value": "ETS_Empty Ability"
+      "value": "SettingsData Ability"
     },
     {
       "name": "dataability_description",
-      "value": "hap sample empty provider"
+      "value": "hap dabase service provider"
     }
   ]
 }
