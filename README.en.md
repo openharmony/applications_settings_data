@@ -1,7 +1,7 @@
-# applications_settingsdata
+# SettingsData
 
 #### Description
-Settingsdata application is a system application in openharmony system, which provides users with database access services, such as storing and reading system time, screen brightness and other system attributes.
+Settingsdata is a system application in openharmony system, which provides users with database access services, such as storing / reading system time format, screen brightness and other system attributes.
 
 ####  Directory Structure
 
@@ -28,9 +28,8 @@ Settingsdata application is a system application in openharmony system, which pr
 └── LICENSE                                  # Copyright license file
 ```
 
-#### Contribution
+#### Repositories Involved
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+System apps
+
+application_settings_data
