@@ -1,2 +1,0 @@
-include ':entry',':phone'
-project(':phone').projectDir = new File('./product/phone')
