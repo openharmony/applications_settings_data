@@ -82,7 +82,7 @@ class SettingsDBHelper {
 
   public async initRdbStore() {
     console.log(TAG + 'call initRdbStore start');
-    this.rdbStore_ = await ohosDataRdb.getRdbStore({ name: SettingsDataConfig.DB_NAME }, 1);
+    this.rdbStore_ = await ohosDataRdb.getRdbStore(this, { name: SettingsDataConfig.DB_NAME }, 1);
     console.log(TAG + 'call initRdbStore, rdbStore_ = ' + this.rdbStore_);
 
     console.log(TAG + "initRdbStore executeSql");

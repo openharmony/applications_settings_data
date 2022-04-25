@@ -1,14 +1,4 @@
-*.iml
-.gradle
+/node_modules
 /local.properties
-.idea
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-/gradle
-/gradle.properties
-/entry/.gitignore
-/entry/build/
-/product/phone/build/
+/.idea
+**/build
