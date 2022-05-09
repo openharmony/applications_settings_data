@@ -15,23 +15,19 @@
  */
 
 import data_storage from '@ohos.data.storage';
+import deviceinfo from '@ohos.deviceinfo';
 import fileio from '@ohos.fileio';
 import ohosDataRdb from '@ohos.data.rdb';
+import resourceManager from '@ohos.resourceManager';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
-import deviceinfo from '@ohos.deviceinfo';
 
 let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME} (`
 + `${SettingsDataConfig.FIELD_ID} INTEGER PRIMARY KEY AUTOINCREMENT, `
 + `KEYWORD TEXT, `
 + `VALUE TEXT CHECK (LENGTH(VALUE)<=1000))`;
 
-const FILE_URI = "/data/accounts/account_0/applications/com.ohos.settingsdata"
-+ "/com.ohos.settingsdata/assets/phone/resources/rawfile";
-
-const STORAGE_URI = "/data/accounts/account_0/appdata/com.ohos.settingsdata/sharedPreference/";
-
-let DEFAULT_JSON_FILE_PATH = FILE_URI + "/default_settings.json";
-let SETTINGSDATA_PREFERENCE = STORAGE_URI + "/SettingsDataPreference";
+const DEFAULT_JSON_FILE_NAME : string = "default_settings.json";
+const SETTINGSDATA_PREFERENCE : string = "SettingsDataPreference";
 
 let DefaultKey = SettingsDataConfig.DefaultKey;
 let SettingsKey = SettingsDataConfig.SettingsKey;
@@ -48,53 +44,58 @@ const DefalutKVGlobal = {
 let TAG = "SettingsDBHelper ";
 
 class SettingsDBHelper {
-  private startup_flag: boolean;
+  private firstStartupFlag: boolean;
   private rdbStore_;
+  private context_;
   private static instance_: SettingsDBHelper;
 
   private constructor() {
-    this.startup_flag = false;
+    this.firstStartupFlag = false;
     this.rdbStore_ = undefined;
+    this.context_ = globalThis.abilityContext;
     console.log(TAG + 'call construstor');
   }
 
-  private startupConfig() {
-    console.log(TAG + "startupConfig start");
-    let storage = data_storage.getStorageSync(SETTINGSDATA_PREFERENCE);
-    console.log(TAG + "startupConfig getStorageSync = " + storage);
-    let isExist = storage.hasSync('startup')
-    console.log(TAG + "startupConfig hasSync = " + isExist);
+  private async firstStartupConfig() : Promise<void> {
+    console.log(TAG + "firstStartupConfig start");
+    let path : string = await this.context_.getFilesDir();
+    let storage = await data_storage.getStorage(path + SETTINGSDATA_PREFERENCE)
+    console.log(TAG + "firstStartupConfig getStorage = " + storage);
+    let isExist = await storage.has('isFirstStartUp')
+    console.log(TAG + "firstStartupConfig has isFirstStartUp = " + isExist);
     if (!isExist) {
-      console.info(TAG + "The key of startup is not contained.")
-      console.log(TAG + "startupConfig putSync start");
-      storage.putSync('startup', 'auto');
-      console.log(TAG + "startupConfig flushSync start");
-      storage.flushSync();
-      console.log(TAG + "startupConfig flushSync end");
-      this.startup_flag = true;
+      console.info(TAG + "The key of isFirstStartUp is not contained.")
+      console.log(TAG + "firstStartupConfig put start");
+      await storage.put('isFirstStartUp', 'true');
+      console.log(TAG + "firstStartupConfig flush start");
+      await storage.flush();
+      console.log(TAG + "firstStartupConfig flush end");
+      this.firstStartupFlag = true;
     } else {
-      let startup = storage.getSync('startup', 'null');
-      console.log(TAG + "startupConfig getSync startup = " + startup);
+      let startup = await storage.get('isFirstStartUp', 'null');
+      if (startup != 'true') {
+        console.log(TAG + "firstStartupConfig get startup = " + startup);
+        this.firstStartupFlag = true;
+      }
     }
-    console.log(TAG + "startupConfig end");
+    console.log(TAG + "firstStartupConfig end");
     return;
   }
 
   public async initRdbStore() {
     console.log(TAG + 'call initRdbStore start');
-    this.rdbStore_ = await ohosDataRdb.getRdbStore(this, { name: SettingsDataConfig.DB_NAME }, 1);
+    this.rdbStore_ = await ohosDataRdb.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME }, 1);
     console.log(TAG + 'call initRdbStore, rdbStore_ = ' + this.rdbStore_);
 
     console.log(TAG + "initRdbStore executeSql");
     await this.rdbStore_.executeSql(DDL_TABLE_CREATE, []);
 
-    console.log(TAG + 'getRdbStore startupConfig');
-    this.startupConfig();
+    console.log(TAG + 'getRdbStore firstStartupConfig');
+    await this.firstStartupConfig();
 
-    console.log(TAG + 'initRdbStore getDefaultSettingsKV');
-    let defaultKV = this.getDefaultSettingsKV();
-
-    if (this.startup_flag) {
+    if (this.firstStartupFlag) {
+      console.log(TAG + 'initRdbStore getDefaultSettingsKV');
+      let defaultKV = await this.getDefaultSettingsKV();
       console.log(TAG + 'initRdbStore loadDefaultSettings');
       await this.loadDefaultSettings(defaultKV);
     } else {
@@ -159,39 +160,28 @@ class SettingsDBHelper {
     return;
   }
 
-  private readDefaultFile(): string {
+  private async readDefaultFile(): Promise<string> {
     console.log(TAG + "readDefaultFile start");
-    let str: string = "";
-    let ss;
+    let rawStr: string = "";
     try {
-      ss = fileio.createStreamSync(DEFAULT_JSON_FILE_PATH, "r");
-      console.log(TAG + "readDefaultFile createStreamSync = " + ss);
-      let buf = new ArrayBuffer(4096);
-      let num = ss.readSync(buf);
-      while (num) {
-        console.log(TAG + "readDefaultFile readSync num = " + num + " buff = " + new Uint8Array(buf.slice(0, num)));
-        str = str.concat(String.fromCharCode.apply(null, new Uint8Array(buf.slice(0, num))));
-        num = ss.readSync(buf);
-      }
-      ss.closeSync();
-      console.log(TAG + "readDefaultFile readSync = " + JSON.stringify(str));
+      let resManager = await resourceManager.getResourceManager();
+      console.log("readDefaultFile resManager="+resManager);
+      let content = await resManager.getRawFile(DEFAULT_JSON_FILE_NAME);
+      rawStr = String.fromCharCode.apply(null, content);
     } catch (err) {
-      console.log(TAG + "readDefaultFile readSync err" + err);
-      if (ss) {
-        ss.closeSync();
-      }
+      console.log(TAG + "readDefaultFile readRawFile err" + err);
     }
     console.log(TAG + "readDefaultFile end");
-    return str;
+    return rawStr;
   }
 
-  private getDefaultSettingsKV() {
+  private async getDefaultSettingsKV() {
     console.log(TAG + "getDefaultSettingsKV start");
     let defaultKV = {};
     try {
-      let content = this.readDefaultFile();
+      let content : string = await this.readDefaultFile();
       if (!content) {
-        console.log(TAG + "getDefaultSettingsKV readDefaultFile err! context = " + content);
+        console.log(TAG + "getDefaultSettingsKV readDefaultFile err! content = " + content);
         throw new Error("readfile error!")
       }
       let defaultJson = JSON.parse(content);
