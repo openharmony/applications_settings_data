@@ -18,6 +18,7 @@ import Brightness from '@ohos.brightness';
 import bluetooth from '@ohos.bluetooth';
 import dataAbility from '@ohos.data.dataability';
 import featureAbility from '@ohos.ability.featureAbility';
+import settings from '@ohos.settings';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import SettingsDBHelper from '../Utils/SettingsDBHelper';
 
@@ -27,7 +28,7 @@ let requests:any[] = [];
 
 function DoSystemSetting(settingsKey : string, settingsValue : string) {
     switch (settingsKey) {
-        case SettingsDataConfig.SettingsKey.SETTINGS_SCREEN_BRIGHTNESS:
+        case settings.display.SCREEN_BRIGHTNESS_STATUS:
         {
             try {
                 console.log(TAG + 'settings Brightness start')
@@ -73,7 +74,7 @@ function DoSystemSetting(settingsKey : string, settingsValue : string) {
                 console.log(TAG + 'settings VOICE_CALL failed error = ' + JSON.stringify(err));
             }
         }break
-        case SettingsDataConfig.SettingsKey.SETTINGS_GENERAL_DEVICE_NAME:
+        case settings.general.DEVICE_NAME:
         {
             try {
                 let result = bluetooth.setLocalName(settingsValue);
