@@ -19,6 +19,7 @@ import deviceinfo from '@ohos.deviceinfo';
 import fileio from '@ohos.fileio';
 import ohosDataRdb from '@ohos.data.rdb';
 import resourceManager from '@ohos.resourceManager';
+import settings from '@ohos.settings';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 
 let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME} (`
@@ -136,10 +137,10 @@ class SettingsDBHelper {
     console.log(TAG + "loadDefaultSettings start");
 
     await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_SCREEN_BRIGHTNESS, defaultKV[DefaultKey.SETTINGS_SCREEN_BRIGHTNESS_DEFAULT]);
+      settings.display.SCREEN_BRIGHTNESS_STATUS, defaultKV[DefaultKey.SETTINGS_SCREEN_BRIGHTNESS_DEFAULT]);
 
     await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_TIME_FORMAT, defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT]);
+      settings.date.TIME_FORMAT, defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT]);
 
     await this.loadSettings(this.rdbStore_,
       SettingsKey.SETTINGS_AUDIO_RINGTONE, defaultKV[DefaultKey.SETTINGS_AUDIO_RINGTONE_DEFAULT]);
@@ -151,7 +152,7 @@ class SettingsDBHelper {
       SettingsKey.SETTINGS_AUDIO_VOICE_CALL, defaultKV[DefaultKey.SETTINGS_AUDIO_VOICE_CALL_DEFAULT]);
 
     await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_GENERAL_DEVICE_NAME, defaultKV[DefaultKey.SETTINGS_GENERAL_DEVICE_NAME_DEFAULT]);
+      settings.general.DEVICE_NAME, defaultKV[DefaultKey.SETTINGS_GENERAL_DEVICE_NAME_DEFAULT]);
 
     await this.loadSettings(this.rdbStore_,
       SettingsKey.SETTINGS_DISPALY_NAVBAR_STATUS, defaultKV[DefaultKey.SETTINGS_DISPALY_NAVBAR_STATUS_DEFAULT]);
