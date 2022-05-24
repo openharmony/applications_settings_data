@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 export default {
   onCreate() {
-    console.info('SettingsData Application onCreate')
+    console.info('Application onCreate')
   },
   onDestroy() {
-    console.info('SettingsData Application onDestroy')
+    console.info('Application onDestroy')
   },
 }
