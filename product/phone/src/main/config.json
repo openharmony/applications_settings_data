@@ -39,6 +39,17 @@
         "launchType": "singleton",
         "label": "$string:entry_MainAbility"
       }
+    ],
+    "reqPermissions": [
+      {
+        "name": "ohos.permission.USE_BLUETOOTH"
+      },
+      {
+        "name": "ohos.permission.DISCOVER_BLUETOOTH"
+      },
+      {
+        "name": "ohos.permission.MANAGE_BLUETOOTH"
+      }
     ]
   }
 }
