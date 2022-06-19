@@ -36,7 +36,7 @@ SettingsData是 OpenHarmony 系统中预置的系统应用，为用户提供数�
 
 系统应用
 
-application_settings_data
+**application_settings_data**
 
 
 

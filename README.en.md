@@ -32,4 +32,4 @@ Settingsdata is a system application in openharmony system, which provides users
 
 System apps
 
-application_settings_data
+**application_settings_data** 
