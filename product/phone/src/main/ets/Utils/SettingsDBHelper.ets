@@ -19,6 +19,7 @@ import deviceinfo from '@ohos.deviceinfo';
 import fileio from '@ohos.fileio';
 import ohosDataRdb from '@ohos.data.rdb';
 import resourceManager from '@ohos.resourceManager';
+import i18n from '@ohos.i18n';
 import settings from '@ohos.settings';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 
@@ -41,6 +42,11 @@ const DefalutKVGlobal = {
   "settings.audio.voicecall.default": "5",
   "settings.display.navigationbar_status.default": "1",
 };
+
+const TIME_FORMAT = {
+  TIME_FORMAT_24 : "24",
+  TIME_FORMAT_12 : "12",
+}
 
 let TAG = "SettingsDBHelper ";
 
@@ -199,6 +205,12 @@ class SettingsDBHelper {
       deviceName = JSON.parse(deviceName);
     }
     defaultKV[DefaultKey.SETTINGS_GENERAL_DEVICE_NAME_DEFAULT] = deviceName;
+
+    if (i18n.is24HourClock()) {
+      defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_24;
+    } else {
+      defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_12;
+    }
     return defaultKV;
   }
 }
