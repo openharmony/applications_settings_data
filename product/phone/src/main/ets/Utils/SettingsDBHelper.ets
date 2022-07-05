@@ -15,12 +15,13 @@
  */
 
 import data_storage from '@ohos.data.storage';
-import deviceinfo from '@ohos.deviceinfo';
+import deviceinfo from '@ohos.deviceInfo';
 import fileio from '@ohos.fileio';
 import ohosDataRdb from '@ohos.data.rdb';
 import resourceManager from '@ohos.resourceManager';
 import i18n from '@ohos.i18n';
 import settings from '@ohos.settings';
+import systemParameter from '@ohos.systemparameter';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 
 let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME} (`
@@ -28,8 +29,8 @@ let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NA
 + `KEYWORD TEXT, `
 + `VALUE TEXT CHECK (LENGTH(VALUE)<=1000))`;
 
-const DEFAULT_JSON_FILE_NAME : string = "default_settings.json";
-const SETTINGSDATA_PREFERENCE : string = "SettingsDataPreference";
+const DEFAULT_JSON_FILE_NAME: string = "default_settings.json";
+const SETTINGSDATA_PREFERENCE: string = "SettingsDataPreference";
 
 let DefaultKey = SettingsDataConfig.DefaultKey;
 let SettingsKey = SettingsDataConfig.SettingsKey;
@@ -44,8 +45,8 @@ const DefalutKVGlobal = {
 };
 
 const TIME_FORMAT = {
-  TIME_FORMAT_24 : "24",
-  TIME_FORMAT_12 : "12",
+  TIME_FORMAT_24: "24",
+  TIME_FORMAT_12: "12",
 }
 
 let TAG = "SettingsDBHelper ";
@@ -63,9 +64,9 @@ class SettingsDBHelper {
     console.log(TAG + 'call construstor');
   }
 
-  private async firstStartupConfig() : Promise<void> {
+  private async firstStartupConfig(): Promise<void> {
     console.log(TAG + "firstStartupConfig start");
-    let path : string = await this.context_.getFilesDir();
+    let path: string = await this.context_.getFilesDir();
     let storage = await data_storage.getStorage(path + SETTINGSDATA_PREFERENCE)
     console.log(TAG + "firstStartupConfig getStorage = " + storage);
     let isExist = await storage.has('isFirstStartUp')
@@ -172,7 +173,7 @@ class SettingsDBHelper {
     let rawStr: string = "";
     try {
       let resManager = await resourceManager.getResourceManager();
-      console.log("readDefaultFile resManager="+resManager);
+      console.log("readDefaultFile resManager=" + resManager);
       let content = await resManager.getRawFile(DEFAULT_JSON_FILE_NAME);
       rawStr = String.fromCharCode.apply(null, content);
     } catch (err) {
@@ -186,7 +187,7 @@ class SettingsDBHelper {
     console.log(TAG + "getDefaultSettingsKV start");
     let defaultKV = {};
     try {
-      let content : string = await this.readDefaultFile();
+      let content: string = await this.readDefaultFile();
       if (!content) {
         console.log(TAG + "getDefaultSettingsKV readDefaultFile err! content = " + content);
         throw new Error("readfile error!")
@@ -200,7 +201,7 @@ class SettingsDBHelper {
       console.log(TAG + "getDefaultSettingsKV catch err! err = " + err);
       defaultKV = DefalutKVGlobal;
     }
-    let deviceName : string = deviceinfo.marketName;
+    let deviceName: string = deviceinfo.marketName;
     if (deviceName.startsWith('"') && deviceName.endsWith('"')) {
       deviceName = JSON.parse(deviceName);
     }
@@ -210,6 +211,11 @@ class SettingsDBHelper {
       defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_24;
     } else {
       defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_12;
+    }
+
+    let defaultBrightness = systemParameter.getSync('const.display.brightness.default');
+    if (defaultBrightness.length > 0) {
+      defaultKV[DefaultKey.SETTINGS_SCREEN_BRIGHTNESS_DEFAULT] = defaultBrightness;
     }
     return defaultKV;
   }
