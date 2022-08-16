@@ -28,16 +28,6 @@ let requests:any[] = [];
 
 function DoSystemSetting(settingsKey : string, settingsValue : string) {
     switch (settingsKey) {
-        case settings.display.SCREEN_BRIGHTNESS_STATUS:
-        {
-            try {
-                console.log(TAG + 'settings Brightness start')
-                Brightness.setValue(parseInt(settingsValue));
-                console.log(TAG + 'settings Brightness returned to indicate a successful Brightness setting.')
-            } catch (err) {
-                console.log(TAG + 'settings Brightness failed error = ' + JSON.stringify(err));
-            }
-        }break
         case SettingsDataConfig.SettingsKey.SETTINGS_AUDIO_RINGTONE:
         {
             try {
