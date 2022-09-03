@@ -1,6 +1,5 @@
 {
   "app": {
-    "singleton": true,
     "bundleName": "com.ohos.settingsdata",
     "vendor": "ohos",
     "version": {
@@ -10,7 +9,6 @@
   },
   "deviceConfig": {
     "default" : {
-      "keepAlive" : true
     }
   },
   "module": {
