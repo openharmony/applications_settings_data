@@ -1,5 +1,8 @@
 {
   "apiType": 'faMode',
+  "entryModules": [
+    "entry"
+  ],
   "buildOption": {
   },
   "targets": [
