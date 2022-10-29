@@ -1,32 +1,15 @@
-/**
- * @file Describe the file
- * Copyright (c) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 import Audio from '@ohos.multimedia.audio';
+import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 import bluetooth from '@ohos.bluetooth';
-import dataAbility from '@ohos.data.dataAbility';
-import featureAbility from '@ohos.ability.featureAbility';
+import DataShareExtensionAbility from '@ohos.application.DataShareExtensionAbility';
+import rpc from '@ohos.rpc';
 import settings from '@ohos.settings';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import SettingsDBHelper from '../Utils/SettingsDBHelper';
 import { Log } from '../Utils/Log';
 
-import rpc from '@ohos.rpc';
-import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-
 let rdbStore;
-let requests: any[] = [];
+let requests:any[] = [];
 
 function DoSystemSetting(settingsKey: string, settingsValue: string) {
     switch (settingsKey) {
@@ -40,8 +23,8 @@ function DoSystemSetting(settingsKey: string, settingsValue: string) {
             } catch (err) {
                 Log.I('settings RINGTONE failed error = ' + JSON.stringify(err));
             }
-            break
         }
+            break
         case SettingsDataConfig.SettingsKey.SETTINGS_AUDIO_MEDIA: {
             try {
                 let volumeType = Audio.AudioVolumeType.MEDIA;
@@ -52,8 +35,8 @@ function DoSystemSetting(settingsKey: string, settingsValue: string) {
             } catch (err) {
                 Log.I('settings MEDIA failed error = ' + JSON.stringify(err));
             }
-            break
         }
+            break
         case SettingsDataConfig.SettingsKey.SETTINGS_AUDIO_VOICE_CALL: {
             try {
                 let volumeType = Audio.AudioVolumeType.VOICE_CALL;
@@ -64,8 +47,8 @@ function DoSystemSetting(settingsKey: string, settingsValue: string) {
             } catch (err) {
                 Log.I('settings VOICE_CALL failed error = ' + JSON.stringify(err));
             }
-            break
         }
+            break
         case settings.general.DEVICE_NAME: {
             try {
                 let result = bluetooth.setLocalName(settingsValue);
@@ -73,8 +56,8 @@ function DoSystemSetting(settingsKey: string, settingsValue: string) {
             } catch (err) {
                 Log.I('settings bluetooth_name failed, error = ' + JSON.stringify(err));
             }
-            break
         }
+            break
         default: {
             Log.I(settingsKey + ' key is not brightness or audio or deviceName');
         }
@@ -117,16 +100,22 @@ function isTrustList(keyWord: String) {
     return ret != -1;
 }
 
-export default {
-    onInitialized(abilityInfo) {
+export default class UserDsExtAbility extends DataShareExtensionAbility {
+    onCreate(want) {
+        console.info('[ttt] [DataShareTest] <<Extension>> DataShareExtAbility onCreate, want:' + want.abilityName);
+        console.info('[ttt] [DataShareTest] <<Extension>> this.context:' + this.context);
+        globalThis.abilityContext = this.context;
+        this.onInitialized(null);
+    }
+
+    onInitialized (abilityInfo) {
         Log.I('onInitialize getContext start');
-        let context = featureAbility.getContext();
-        globalThis.abilityContext = context;
-        if (context != null) {
+        let context = globalThis.abilityContext;
+        if(context != null) {
             SettingsDBHelper.getInstance().getRdbStore().then((rdb: any) => {
-                Log.I(" onInitialized rdb：" + rdb);
+                Log.I(" onInitialized rdb:" + rdb);
                 rdbStore = rdb;
-                Log.I(" onInitialized requests：" + JSON.stringify(requests));
+                Log.I(" onInitialized requests:" + JSON.stringify(requests));
                 for (let i = 0; i < requests.length; i++) {
                     let opt: string = requests[i]["operation"];
                     let columns = requests[i]["columns"];
@@ -137,25 +126,23 @@ export default {
                             Log.I('onInitialized insert ret: ' + ret);
                         });
                     } else if (opt == "query") {
-                        let rdbPredicates = dataAbility.createRdbPredicates(SettingsDataConfig.TABLE_NAME, predicates);
-                        rdbStore.query(rdbPredicates, columns, function (err, resultSet) {
+                        rdbStore.query(predicates, columns, function (err, resultSet) {
                             Log.I('onInitialized query ret: ' + JSON.stringify(resultSet));
                         });
                     } else if (opt == "update") {
-                        let rdbPredicates = dataAbility.createRdbPredicates(SettingsDataConfig.TABLE_NAME, predicates);
-                        rdbStore.update(value, rdbPredicates, function (err, ret) {
+                        rdbStore.update(value, predicates, function (err, ret) {
                             Log.I('onInitialized update ret: ' + ret);
                         });
                     }
                 }
             }).catch(err => {
-                Log.I('onInitialize failed');
+                Log.E('onInitialize failed:'+JSON.stringify(err));
             })
             Log.I('onInitialize end');
         } else {
             Log.I('onInitialize context error!');
         }
-    },
+    }
 
     insert(uri, value, callback) {
         Log.I('insert keyword = ' + value["KEYWORD"] + ' start:' + uri);
@@ -194,31 +181,9 @@ export default {
             Log.E('Insert Data error:' + JSON.stringify(err));
             callback(-1, 0);
         }
-    },
+    }
 
-    query(uri, columns, predicates, callback) {
-        Log.I('query start uri:' + uri);
-        if (rdbStore == null) {
-            let request = {
-                "operation": "query", "columns": columns, "predicates": predicates, value: ""
-            };
-            Log.I('query request = ' + JSON.stringify(request));
-            requests.push(request);
-            callback(-1, {
-                "_napiwrapper": {}
-            });
-        } else {
-            let rdbPredicates = dataAbility.createRdbPredicates(SettingsDataConfig.TABLE_NAME, predicates);
-            rdbStore.query(rdbPredicates, columns, function (err, resultSet) {
-                Log.I('query before callback err:' + JSON.stringify(err) + " ResultSet" + JSON.stringify(resultSet));
-                callback(err, resultSet);
-                Log.I('query after callback ');
-                Log.I('query result: ' + JSON.stringify(resultSet));
-            });
-        }
-    },
-
-    update(uri, value, predicates, callback) {
+    update(uri: string, predicates, value, callback) {
         Log.I('update keyword = ' + value["KEYWORD"] + ' start:' + uri);
         let rdbUpData = (GrantStatus) => {
             if (!GrantStatus) {
@@ -227,15 +192,12 @@ export default {
             }
             DoSystemSetting(value["KEYWORD"], value["VALUE"]);
             if (rdbStore == null) {
-                let request = {
-                    "operation": "update", "columns": null, "predicates": predicates, value: value
-                };
-                Log.I('update request = ' + JSON.stringify(request));
+                let request = {"operation":"update", "columns" : null, "predicates" : predicates, value : value};
+                Log.I('update request = '+ JSON.stringify(request));
                 requests.push(request);
                 callback(-1, 0);
             } else {
-                let rdbPredicates = dataAbility.createRdbPredicates(SettingsDataConfig.TABLE_NAME, predicates);
-                rdbStore.update(value, rdbPredicates, function (err, ret) {
+                rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, function (err, ret) {
                     Log.I('update before callback ' + JSON.stringify(err));
                     callback(err, ret);
                     Log.I('update after callback ' + JSON.stringify(ret));
@@ -243,7 +205,6 @@ export default {
                 });
             }
         }
-
         try {
             if (isTrustList(value["KEYWORD"])) {
                 Log.I('trustList data exists.');
@@ -257,4 +218,25 @@ export default {
             callback(-1, 0);
         }
     }
-};
+
+    delete(uri: string, predicates, callback) {
+        Log.I('nothing to do');
+    }
+
+    query(uri: string, predicates, columns: Array<string>, callback) {
+        Log.I( 'query start uri:' + uri);
+        if (rdbStore == null) {
+            let request= {"operation":"query", "columns" : columns, "predicates" : predicates, value:""};
+            Log.I('query request = '+ JSON.stringify(request));
+            requests.push(request);
+            callback(-1, {"_napiwrapper":{}});
+        } else {
+            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, function (err, resultSet) {
+                Log.I('query before callback err:' + JSON.stringify(err) + " ResultSet" + JSON.stringify(resultSet));
+                callback(err, resultSet);
+                Log.I('query after callback ');
+                Log.I('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
+            });
+        }
+    }
+}
