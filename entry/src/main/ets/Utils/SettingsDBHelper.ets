@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import data_storage from '@ohos.data.storage';
+import dataStorage from '@ohos.data.preferences';
 import deviceInfo from '@ohos.deviceInfo';
 import ohosDataRdb from '@ohos.data.rdb';
-import resourceManager from '@ohos.resourceManager';
 import i18n from '@ohos.i18n';
 import settings from '@ohos.settings';
 import systemParameter from '@ohos.systemparameter';
@@ -29,8 +28,8 @@ let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NA
 + `KEYWORD TEXT, `
 + `VALUE TEXT CHECK (LENGTH(VALUE)<=1000))`;
 
-const DEFAULT_JSON_FILE_NAME: string = "default_settings.json";
-const SETTINGSDATA_PREFERENCE: string = "SettingsDataPreference";
+const DEFAULT_JSON_FILE_NAME : string = "default_settings.json";
+const SETTINGSDATA_PREFERENCE : string = "SettingsDataPreference";
 
 let DefaultKey = SettingsDataConfig.DefaultKey;
 let SettingsKey = SettingsDataConfig.SettingsKey;
@@ -62,10 +61,9 @@ class SettingsDBHelper {
     Log.I('call construstor');
   }
 
-  private async firstStartupConfig(): Promise<void> {
+  private async firstStartupConfig() : Promise<void> {
     Log.I("firstStartupConfig start");
-    let path: string = await this.context_.getFilesDir();
-    let storage = await data_storage.getStorage(path + SETTINGSDATA_PREFERENCE)
+    let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE)
     Log.I("firstStartupConfig getStorage = " + storage);
     let isExist = await storage.has('isFirstStartUp')
     Log.I("firstStartupConfig has isFirstStartUp = " + isExist);
@@ -170,7 +168,7 @@ class SettingsDBHelper {
     Log.I("readDefaultFile start");
     let rawStr: string = "";
     try {
-      let resManager = await resourceManager.getResourceManager();
+      let resManager = this.context_.resourceManager;
       Log.I("readDefaultFile resManager=" + resManager);
       let content = await resManager.getRawFile(DEFAULT_JSON_FILE_NAME);
       rawStr = String.fromCharCode.apply(null, content);
