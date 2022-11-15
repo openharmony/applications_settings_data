@@ -2,8 +2,8 @@
   "app": {
     "signingConfigs": [
     ],
-    "compileSdkVersion": 8,
-    "compatibleSdkVersion": 8,
+    "compileSdkVersion": 9,
+    "compatibleSdkVersion": 9,
     "products": [
       {
         "name": "default",
@@ -15,18 +15,6 @@
     {
       "name": "entry",
       "srcPath": "./entry",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "phone",
-      "srcPath": "./product/phone",
       "targets": [
         {
           "name": "default",
