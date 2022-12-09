@@ -7,6 +7,7 @@ import settings from '@ohos.settings';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import SettingsDBHelper from '../Utils/SettingsDBHelper';
 import { Log } from '../Utils/Log';
+import process from '@ohos.process';
 
 let rdbStore;
 let requests:any[] = [];
@@ -65,6 +66,10 @@ function DoSystemSetting(settingsKey: string, settingsValue: string) {
 }
 
 function verifyPermission(callBack) {
+    if (process.uid == rpc.IPCSkeleton.getCallingUid()) {
+        callBack(true);
+        return;
+    }
     try {
         let tokenID = rpc.IPCSkeleton.getCallingTokenId();
         Log.I('tokenID = ' + tokenID);
