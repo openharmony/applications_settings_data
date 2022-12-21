@@ -160,6 +160,9 @@ class SettingsDBHelper {
     await this.loadSettings(this.rdbStore_,
       SettingsKey.SETTINGS_DISPALY_NAVBAR_STATUS, defaultKV[DefaultKey.SETTINGS_DISPALY_NAVBAR_STATUS_DEFAULT]);
 
+    await this.loadSettings(this.rdbStore_,
+      SettingsKey.CELLULAR_DATA_ENABLE, defaultKV[DefaultKey.CELLULAR_DATA_ENABLE_DEFAULT]);
+
     Log.I("loadDefaultSettings end");
     return;
   }
