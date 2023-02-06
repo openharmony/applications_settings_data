@@ -22,7 +22,8 @@
         "type": "dataShare",
         "uri": "datashare://com.ohos.settingsdata.DataAbility",
         "visible": true,
-        "writePermission": "ohos.permission.MANAGE_SECURE_SETTINGS"
+        "writePermission": "ohos.permission.MANAGE_SECURE_SETTINGS",
+        "metadata": [{"name": "ohos.extension.dataShare", "resource": "$profile:data_share_config"}]
       }
     ]
   }
