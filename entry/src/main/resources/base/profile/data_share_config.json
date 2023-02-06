@@ -1,14 +1,11 @@
 {
     "tableConfig": [
       {
-        "uri": "*",
-        "writePermission": "ohos.permission.xxx"
+        "uri": "*"
       },
       {
         "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata",
-        "crossUserMode": 1,
-        "writePermission": "ohos.permission.xxx",
-        "readPermission": "ohos.permission.xxx"
+        "crossUserMode": 1
       },
       {
         "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA",
