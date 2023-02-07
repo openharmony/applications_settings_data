@@ -22,7 +22,7 @@ enum DefaultKey {
   SETTINGS_AUDIO_VOICE_CALL_DEFAULT = "settings.audio.voicecall.default",
   SETTINGS_GENERAL_DEVICE_NAME_DEFAULT = "settings.general.device_name.default",
   SETTINGS_DISPALY_NAVBAR_STATUS_DEFAULT = "settings.display.navigationbar_status.default",
-  CELLULAR_DATA_ENABLE_DEFAULT = "cellular_data_enable.default"
+  CELLULAR_DATA_ENABLE_DEFAULT = "cellular_data_enable.default",
 };
 
 enum SettingsKey {
