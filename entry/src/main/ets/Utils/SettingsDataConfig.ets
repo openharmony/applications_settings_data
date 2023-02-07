@@ -33,7 +33,7 @@ enum SettingsKey {
   SETTINGS_AUDIO_VOICE_CALL = "settings.audio.voicecall",
   SETTINGS_GENERAL_DEVICE_NAME = "settings.general.device_name",
   SETTINGS_DISPALY_NAVBAR_STATUS = "settings.display.navigationbar_status",
-  CELLULAR_DATA_ENABLE = "cellular_data_enable"
+  CELLULAR_DATA_ENABLE = "cellular_data_enable",
 };
 
 const SettingsDataConfig = {
