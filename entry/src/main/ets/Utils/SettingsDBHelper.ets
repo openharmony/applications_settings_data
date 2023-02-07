@@ -41,7 +41,7 @@ const DefalutKVGlobal = {
   "settings.audio.media.default": "5",
   "settings.audio.voicecall.default": "5",
   "settings.display.navigationbar_status.default": "1",
-  "cellular_data_enable.default": "1"
+  "cellular_data_enable.default": "1",
 };
 
 const TIME_FORMAT = {
