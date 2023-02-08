@@ -27,10 +27,6 @@
     {
       "name": "cellular_data_enable.default",
       "value": "1"
-    },
-    {
-      "name": "settings.display.auto_screen_brightness.default",
-      "value": "1"
     }
   ]
 }

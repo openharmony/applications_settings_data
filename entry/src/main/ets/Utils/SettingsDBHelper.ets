@@ -42,7 +42,6 @@ const DefalutKVGlobal = {
   "settings.audio.voicecall.default": "5",
   "settings.display.navigationbar_status.default": "1",
   "cellular_data_enable.default": "1",
-  "settings.display.auto_screen_brightness.default": "1"
 };
 
 const TIME_FORMAT = {
@@ -164,9 +163,6 @@ class SettingsDBHelper {
 
     await this.loadSettings(this.rdbStore_,
       SettingsKey.CELLULAR_DATA_ENABLE, defaultKV[DefaultKey.CELLULAR_DATA_ENABLE_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_DISPLAY_AUTO_SCREEN_BRIGHTNESS, defaultKV[DefaultKey.SETTINGS_DISPLAY_AUTO_SCREEN_BRIGHTNESS_DEFAULT]);
 
     Log.I("loadDefaultSettings end");
     return;
