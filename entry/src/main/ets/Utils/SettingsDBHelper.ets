@@ -164,6 +164,9 @@ class SettingsDBHelper {
     await this.loadSettings(this.rdbStore_,
       SettingsKey.CELLULAR_DATA_ENABLE, defaultKV[DefaultKey.CELLULAR_DATA_ENABLE_DEFAULT]);
 
+    await this.loadSettings(this.rdbStore_,
+      SettingsKey.LOCATION_ENABLE, defaultKV[DefaultKey.LOCATION_ENABLE_DEFAULT]);
+
     Log.I("loadDefaultSettings end");
     return;
   }
