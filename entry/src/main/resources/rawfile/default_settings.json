@@ -1,35 +1,27 @@
 {
   "settings": [
     {
-      "name": "settings.screen.brightness.default",
-      "value": "50"
-    },
-    {
-      "name": "settings.time.format.default",
-      "value": "24"
-    },
-    {
-      "name": "settings.audio.ringtone.default",
+      "name": "settings.audio.ringtone",
       "value": "5"
     },
     {
-      "name": "settings.audio.media.default",
+      "name": "settings.audio.media",
       "value": "5"
     },
     {
-      "name": "settings.audio.voicecall.default",
+      "name": "settings.audio.voicecall",
       "value": "5"
     },
     {
-      "name": "settings.display.navigationbar_status.default",
+      "name": "settings.display.navigationbar_status",
       "value": "1"
     },
     {
-      "name": "cellular_data_enable.default",
+      "name": "cellular_data_enable",
       "value": "1"
     },
     {
-      "name": "location_enable.default",
+      "name": "settings.display.auto_screen_brightness",
       "value": "1"
     }
   ]
