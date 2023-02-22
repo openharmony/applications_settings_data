@@ -1,6 +1,5 @@
 /**
- * @file Describe the file
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,26 +22,8 @@ import systemParameter from '@ohos.systemparameter';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import { Log } from '../Utils/Log';
 
-let DDL_TABLE_CREATE = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME} (`
-+ `${SettingsDataConfig.FIELD_ID} INTEGER PRIMARY KEY AUTOINCREMENT, `
-+ `KEYWORD TEXT, `
-+ `VALUE TEXT CHECK (LENGTH(VALUE)<=1000))`;
-
 const DEFAULT_JSON_FILE_NAME : string = "default_settings.json";
 const SETTINGSDATA_PREFERENCE : string = "SettingsDataPreference";
-
-let DefaultKey = SettingsDataConfig.DefaultKey;
-let SettingsKey = SettingsDataConfig.SettingsKey;
-
-const DefalutKVGlobal = {
-  "settings.screen.brightness.default": "50",
-  "settings.time.format.default": "24",
-  "settings.audio.ringtone.default": "5",
-  "settings.audio.media.default": "5",
-  "settings.audio.voicecall.default": "5",
-  "settings.display.navigationbar_status.default": "1",
-  "cellular_data_enable.default": "1",
-};
 
 const TIME_FORMAT = {
   TIME_FORMAT_24: "24",
@@ -50,38 +31,35 @@ const TIME_FORMAT = {
 }
 
 class SettingsDBHelper {
-  private firstStartupFlag: boolean;
-  private rdbStore_;
+  static readonly SHARED_TABLE_CREATE_PREFIX = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME}`;
+  // 需要在在表名后拼接当前的userid
+  static readonly CURRENT_USER_TABLE_CREATE_PREFIX = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.USER_TABLE_NAME}_`
+  static readonly TABLE_CREATE_SUFFIX = ` (${SettingsDataConfig.FIELD_ID} INTEGER PRIMARY KEY AUTOINCREMENT, `
+  + `${SettingsDataConfig.FIELD_KEYWORD} TEXT, `
+  + `${SettingsDataConfig.FIELD_VALUE} TEXT CHECK (LENGTH(VALUE)<=1000))`;
+
+  private rdbStore_: ohosDataRdb.RdbStore;
   private context_;
-  private static instance_: SettingsDBHelper;
+  private readonly DEFAULT_USER_ID: number = 100;
 
   private constructor() {
-    this.firstStartupFlag = false;
     this.rdbStore_ = undefined;
     this.context_ = globalThis.abilityContext;
-    Log.I('call construstor');
   }
 
   private async firstStartupConfig() : Promise<void> {
     Log.I("firstStartupConfig start");
     let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE)
-    Log.I("firstStartupConfig getStorage = " + storage);
-    let isExist = await storage.has('isFirstStartUp')
-    Log.I("firstStartupConfig has isFirstStartUp = " + isExist);
-    if (!isExist) {
-      Log.I("The key of isFirstStartUp is not contained.")
-      Log.I("firstStartupConfig put start");
-      await storage.put('isFirstStartUp', 'true');
-      Log.I("firstStartupConfig flush start");
+    let isFirst = await storage.get('isFirstStartUp', true)
+    Log.I("firstStartupConfig isFirstStartUp = " + isFirst);
+    if (isFirst) {
+      // 创建公共数据表
+      await this.rdbStore_.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      // 创建默认用户数据表
+      await this.rdbStore_.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX + this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      await storage.put('isFirstStartUp', false);
       await storage.flush();
-      Log.I("firstStartupConfig flush end");
-      this.firstStartupFlag = true;
-    } else {
-      let startup = await storage.get('isFirstStartUp', 'null');
-      if (startup != 'true') {
-        Log.I("firstStartupConfig get startup = " + startup);
-        this.firstStartupFlag = true;
-      }
+      await this.loadDefaultSettingsData();
     }
     Log.I("firstStartupConfig end");
     return;
@@ -90,137 +68,110 @@ class SettingsDBHelper {
   public async initRdbStore() {
     Log.I('call initRdbStore start');
     this.rdbStore_ = await ohosDataRdb.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME }, 1);
-    Log.I('call initRdbStore, rdbStore_ = ' + this.rdbStore_);
 
-    Log.I("initRdbStore executeSql");
-    await this.rdbStore_.executeSql(DDL_TABLE_CREATE, []);
-
-    Log.I('getRdbStore firstStartupConfig');
     await this.firstStartupConfig();
 
-    if (this.firstStartupFlag) {
-      Log.I('initRdbStore getDefaultSettingsKV');
-      let defaultKV = await this.getDefaultSettingsKV();
-      Log.I('initRdbStore loadDefaultSettings');
-      await this.loadDefaultSettings(defaultKV);
-    } else {
-      Log.I('initRdbStore not need loadDefaultSettings');
-    }
     Log.I('call initRdbStore end');
     return this.rdbStore_;
   }
 
   public static getInstance() {
-    if (!SettingsDBHelper.instance_) {
-      Log.I('call getInstance start');
-      SettingsDBHelper.instance_ = new SettingsDBHelper();
-      Log.I('call getInstance end');
+    if (!globalThis.settingsDBHelper) {
+      globalThis.settingsDBHelper = new SettingsDBHelper();
     }
-    return SettingsDBHelper.instance_;
+    return globalThis.settingsDBHelper;
   }
 
   public async getRdbStore() {
-    Log.I('call getRdbStore start');
-    return await SettingsDBHelper.instance_.initRdbStore();
+    if (!this.rdbStore_) {
+      return await globalThis.settingsDBHelper.initRdbStore();
+    }
+    return this.rdbStore_
   }
 
-  private async loadSettings(rdbStore_, key, value): Promise<void> {
+  private async loadGlobalSettings(key, value): Promise<void> {
+    if (!this.rdbStore_) {
+      Log.E('rdbStore is null!');
+      return
+    }
     Log.I("key=" + key + " value " + value);
-    await this.rdbStore_.insert(
-      SettingsDataConfig.TABLE_NAME,
-      { "KEYWORD": key, "VALUE": value },
-      (err, ret) => {
+    await this.rdbStore_.insert(SettingsDataConfig.TABLE_NAME, { "KEYWORD": key, "VALUE": value }, (err, ret) => {
         if (err) {
-          Log.E("loadSettings insert error:" + JSON.stringify(err));
+          Log.E("loadGlobalSettings insert error:" + JSON.stringify(err));
         }
-        Log.I("loadSettings insert ret = " + ret);
-      });
+        Log.I("loadGlobalSettings insert ret = " + ret);
+      }
+    );
   }
 
-  private async loadDefaultSettings(defaultKV) {
-    Log.I("loadDefaultSettings start");
-
-    await this.loadSettings(this.rdbStore_,
-      settings.display.SCREEN_BRIGHTNESS_STATUS, defaultKV[DefaultKey.SETTINGS_SCREEN_BRIGHTNESS_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      settings.date.TIME_FORMAT, defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_AUDIO_RINGTONE, defaultKV[DefaultKey.SETTINGS_AUDIO_RINGTONE_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_AUDIO_MEDIA, defaultKV[DefaultKey.SETTINGS_AUDIO_MEDIA_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_AUDIO_VOICE_CALL, defaultKV[DefaultKey.SETTINGS_AUDIO_VOICE_CALL_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      settings.general.DEVICE_NAME, defaultKV[DefaultKey.SETTINGS_GENERAL_DEVICE_NAME_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.SETTINGS_DISPALY_NAVBAR_STATUS, defaultKV[DefaultKey.SETTINGS_DISPALY_NAVBAR_STATUS_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.CELLULAR_DATA_ENABLE, defaultKV[DefaultKey.CELLULAR_DATA_ENABLE_DEFAULT]);
-
-    await this.loadSettings(this.rdbStore_,
-      SettingsKey.LOCATION_ENABLE, defaultKV[DefaultKey.LOCATION_ENABLE_DEFAULT]);
-
-    Log.I("loadDefaultSettings end");
-    return;
+  public async loadUserSettings(key, value, userId: number): Promise<void> {
+    if (!this.rdbStore_) {
+      Log.E('rdbStore is null!');
+      return
+    }
+    Log.I("key=" + key + " value " + value + " userid " + userId);
+    await this.rdbStore_.insert(SettingsDataConfig.USER_TABLE_NAME + '_' + userId,
+      { "KEYWORD": key, "VALUE": value }, (err, ret) => {
+      if (err) {
+        Log.E("loadGlobalSettings insert error:" + JSON.stringify(err));
+      }
+      Log.I("loadGlobalSettings insert ret = " + ret);
+    });
   }
 
-  private async readDefaultFile(): Promise<string> {
-    Log.I("readDefaultFile start");
+  public async readDefaultFile() {
     let rawStr: string = "";
     try {
-      let resManager = this.context_.resourceManager;
-      Log.I("readDefaultFile resManager=" + resManager);
-      let content = await resManager.getRawFile(DEFAULT_JSON_FILE_NAME);
+      let content = await this.context_.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME);
       rawStr = String.fromCharCode.apply(null, content);
     } catch (err) {
       Log.E("readDefaultFile readRawFile err" + err);
     }
-    Log.I("readDefaultFile end");
+
+    if (rawStr) {
+      Log.I("readDefaultFile success");
+      return JSON.parse(rawStr);
+    }
     return rawStr;
   }
 
-  private async getDefaultSettingsKV() {
-    Log.I("getDefaultSettingsKV start");
-    let defaultKV = {};
+  private async loadDefaultSettingsData() {
+    Log.I("loadDefaultSettingsData start");
     try {
-      let content: string = await this.readDefaultFile();
+      let content = await this.readDefaultFile();
       if (!content) {
-        Log.I("getDefaultSettingsKV readDefaultFile err! content = " + content);
-        throw new Error("readfile error!")
+        Log.E("readDefaultFile is failed!");
+        return
       }
-      let defaultJson = JSON.parse(content);
-      Log.I("getDefaultSettingsKV parse = " + JSON.stringify(defaultJson));
-      for (var index = 0; index < defaultJson.settings.length; index++) {
-        defaultKV[defaultJson.settings[index].name] = defaultJson.settings[index].value;
+      for (var index = 0; index < content.settings.length; index++) {
+        if (content.settings[index].userConfig) {
+          // 加载用户数据表的默认值
+          await this.loadUserSettings(content.settings[index].name, content.settings[index].value, this.DEFAULT_USER_ID)
+        } else {
+          // 加载公共数据表的默认值
+          await this.loadGlobalSettings(content.settings[index].name, content.settings[index].value);
+        }
       }
     } catch (err) {
-      Log.E("getDefaultSettingsKV catch err! err = " + err);
-      defaultKV = DefalutKVGlobal;
+      Log.E("loadDefaultSettingsData catch error! err = " + err);
     }
+
+    // 初始化设备名称
     let deviceName: string = deviceInfo.marketName;
     if (deviceName.startsWith('"') && deviceName.endsWith('"')) {
       deviceName = JSON.parse(deviceName);
     }
-    defaultKV[DefaultKey.SETTINGS_GENERAL_DEVICE_NAME_DEFAULT] = deviceName;
+    await this.loadGlobalSettings(settings.general.DEVICE_NAME, deviceName);
 
-    if (i18n.is24HourClock()) {
-      defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_24;
-    } else {
-      defaultKV[DefaultKey.SETTINGS_TIME_FORMAT_DEFAULT] = TIME_FORMAT.TIME_FORMAT_12;
-    }
+    // 初始化24小时制
+    await this.loadGlobalSettings(settings.date.TIME_FORMAT, i18n.is24HourClock() ? TIME_FORMAT.TIME_FORMAT_24 : TIME_FORMAT.TIME_FORMAT_12);
 
+    // 初始化亮度值
     let defaultBrightness = systemParameter.getSync('const.display.brightness.default');
-    if (defaultBrightness.length > 0) {
-      defaultKV[DefaultKey.SETTINGS_SCREEN_BRIGHTNESS_DEFAULT] = defaultBrightness;
+    if (defaultBrightness) {
+      await this.loadGlobalSettings(settings.display.SCREEN_BRIGHTNESS_STATUS, defaultBrightness);
     }
-    return defaultKV;
+    Log.I("loadDefaultSettingsData end");
   }
 }
 

@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-const SettingsDataConfig = {
-  DB_NAME: 'settingsdata.db',
-  TABLE_NAME: 'SETTINGSDATA',
-  USER_TABLE_NAME: 'USER_SETTINGSDATA',
-  FIELD_ID: 'ID',
-  FIELD_KEYWORD: 'KEYWORD',
-  FIELD_VALUE: 'VALUE'
-};
+import { Log } from '../Utils/Log';
+import AbilityStage from "@ohos.app.ability.AbilityStage"
 
-export default SettingsDataConfig;
+export default class DataAbilityStage extends AbilityStage {
+    onCreate() {
+        Log.I('DataAbilityStage onCreate');
+        globalThis.abilityContext = this.context;
+    }
+}

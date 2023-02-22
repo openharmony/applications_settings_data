@@ -1,0 +1,226 @@
+/**
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import Audio from '@ohos.multimedia.audio';
+import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
+import DataShareExtensionAbility from '@ohos.application.DataShareExtensionAbility';
+import rpc from '@ohos.rpc';
+import SettingsDataConfig from '../Utils/SettingsDataConfig';
+import SettingsDBHelper from '../Utils/SettingsDBHelper';
+import { Log } from '../Utils/Log';
+import process from '@ohos.process';
+import settings from '@ohos.settings';
+
+let rdbStore;
+let requests:any[] = [];
+let SETTINGS_AUDIO_RINGTONE = "settings.audio.ringtone"
+let SETTINGS_AUDIO_MEDIA = "settings.audio.media"
+let SETTINGS_AUDIO_VOICE_CALL = "settings.audio.voicecall"
+let trustList: Array<String> = [
+settings.display.SCREEN_BRIGHTNESS_STATUS,
+settings.display.AUTO_SCREEN_BRIGHTNESS,
+settings.display.SCREEN_OFF_TIMEOUT
+];
+
+export default class DataExtAbility extends DataShareExtensionAbility {
+    onCreate(want) {
+        this.onInitialized();
+    }
+
+    onInitialized() {
+        Log.I('onInitialize start');
+        let context = globalThis.abilityContext;
+        if (context != null) {
+            SettingsDBHelper.getInstance().getRdbStore().then((rdb: any) => {
+                rdbStore = rdb;
+                for (let i = 0; i < requests.length; i++) {
+                    let opt: string = requests[i]["operation"];
+                    let columns = requests[i]["columns"];
+                    let predicates = requests[i]["predicates"];
+                    let value = requests[i]["value"];
+                    if (opt == "insert") {
+                        rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
+                            Log.I('onInitialized insert ret: ' + ret);
+                        });
+                    } else if (opt == "query") {
+                        rdbStore.query(predicates, columns, function (err, resultSet) {
+                            Log.I('onInitialized query ret: ' + JSON.stringify(resultSet));
+                        });
+                    } else if (opt == "update") {
+                        rdbStore.update(value, predicates, function (err, ret) {
+                            Log.I('onInitialized update ret: ' + ret);
+                        });
+                    }
+                }
+            }).catch(err => {
+                Log.E('onInitialize failed:' + JSON.stringify(err));
+            })
+        } else {
+            Log.I('onInitialize context error!');
+        }
+        Log.I('onInitialize end');
+    }
+
+    insert(uri, value, callback) {
+        Log.I('insert keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
+        let rdbInsert = (GrantStatus) => {
+            if (!GrantStatus) {
+                callback(-1, 0);
+                return;
+            }
+            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD], value[SettingsDataConfig.FIELD_VALUE]);
+            if (rdbStore == null) {
+                let request = {
+                    "operation": "insert", "columns": null, "predicates": null, value: value
+                };
+                Log.I('insert request = ' + JSON.stringify(request));
+                requests.push(request);
+                callback(-1, 0);
+            } else {
+                rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
+                    callback(err, ret);
+                    Log.I('insert result: ' + ret);
+                });
+            }
+        }
+
+        try {
+            Log.I('Start to verify permissions.');
+            this.verifyPermission(value, rdbInsert);
+        } catch (err) {
+            Log.E('Insert Data error:' + JSON.stringify(err));
+            callback(-1, 0);
+        }
+    }
+
+    update(uri: string, predicates, value, callback) {
+        Log.I('update keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
+        let rdbUpData = (GrantStatus) => {
+            if (!GrantStatus) {
+                callback(-1, 0);
+                return;
+            }
+            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD], value[SettingsDataConfig.FIELD_VALUE]);
+            if (rdbStore == null) {
+                let request = {
+                    "operation": "update", "columns": null, "predicates": predicates, value: value
+                };
+                Log.I('update request = ' + JSON.stringify(request));
+                requests.push(request);
+                callback(-1, 0);
+            } else {
+                rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, function (err, ret) {
+                    callback(err, ret);
+                    Log.I('update result: ' + ret);
+                });
+            }
+        }
+        try {
+            Log.I('Start to verify permissions.');
+            this.verifyPermission(value, rdbUpData);
+        } catch (err) {
+            Log.E('upData error:' + JSON.stringify(err));
+            callback(-1, 0);
+        }
+    }
+
+    delete(uri: string, predicates, callback) {
+        Log.I('nothing to do');
+    }
+
+    query(uri: string, predicates, columns: Array<string>, callback) {
+        Log.I( 'query start uri:' + uri);
+        if (rdbStore == null) {
+            let request= {"operation":"query", "columns" : columns, "predicates" : predicates, value:""};
+            Log.I('query request = '+ JSON.stringify(request));
+            requests.push(request);
+            callback(-1, {"_napiwrapper":{}});
+        } else {
+            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, function (err, resultSet) {
+                callback(err, resultSet);
+                Log.I('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
+            });
+        }
+    }
+
+    private DoSystemSetting(settingsKey: string, settingsValue: string) {
+        switch (settingsKey) {
+            case SETTINGS_AUDIO_RINGTONE:
+                try {
+                    let volumeType = Audio.AudioVolumeType.RINGTONE;
+                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                        Log.I('settings Promise returned to indicate a successful RINGTONE setting.')
+                    });
+                } catch (err) {
+                    Log.I('settings RINGTONE failed error = ' + JSON.stringify(err));
+                }
+                break
+            case SETTINGS_AUDIO_MEDIA:
+                try {
+                    let volumeType = Audio.AudioVolumeType.MEDIA;
+                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                        Log.I('settings Promise returned to indicate a successful MEDIA setting.')
+                    });
+                } catch (err) {
+                    Log.I('settings MEDIA failed error = ' + JSON.stringify(err));
+                }
+                break
+            case SETTINGS_AUDIO_VOICE_CALL:
+                try {
+                    let volumeType = Audio.AudioVolumeType.VOICE_CALL;
+                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                        Log.I('settings Promise returned to indicate a successful VOICE_CALL setting.')
+                    });
+                } catch (err) {
+                    Log.I('settings VOICE_CALL failed error = ' + JSON.stringify(err));
+                }
+                break
+            default:
+                Log.I(settingsKey + ' key is not audio');
+                break
+        }
+    }
+
+    private verifyPermission(value, callBack) {
+        if (this.isTrustList(value[SettingsDataConfig.FIELD_KEYWORD]) || process.uid == rpc.IPCSkeleton.getCallingUid()) {
+            callBack(true);
+            return;
+        }
+        try {
+            let tokenID = rpc.IPCSkeleton.getCallingTokenId();
+            Log.I('tokenID = ' + tokenID);
+            let grantStatus = abilityAccessCtrl.createAtManager().verifyAccessToken(tokenID, "ohos.permission.MANAGE_SECURE_SETTINGS");
+            grantStatus.then(data => {
+                if (data == abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
+                    Log.I('MANAGE_SECURE_SETTINGS active');
+                    callBack(true);
+                } else {
+                    Log.W('MANAGE_SECURE_SETTINGS grantStatus= ' + JSON.stringify(data));
+                    callBack(false);
+                }
+            }).catch((err) => {
+                Log.E('tokenID = ' + tokenID + ' verifyAccessToken is failed: ' + JSON.stringify(err));
+                callBack(false);
+            })
+        } catch (err) {
+            Log.E('err = ' + JSON.stringify(err));
+            callBack(false);
+        }
+    }
+
+    private isTrustList(keyWord: String): boolean {
+        return trustList.includes(keyWord)
+    }
+}
