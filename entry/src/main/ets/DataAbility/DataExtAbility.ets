@@ -36,6 +36,7 @@ settings.display.SCREEN_OFF_TIMEOUT
 
 export default class DataExtAbility extends DataShareExtensionAbility {
     onCreate(want) {
+        globalThis.abilityContext = this.context;
         this.onInitialized();
     }
 
