@@ -23,6 +23,10 @@
     {
       "name": "settings.display.auto_screen_brightness",
       "value": "1"
+    },
+    {
+      "name": "ota_disable_automatic_update",
+      "value": "1"
     }
   ]
 }
