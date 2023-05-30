@@ -1,1 +1,6 @@
-{}
+{
+    "src":[
+        "DataAbility/DataExtAbility",
+        "StaticSubscriber/UserChangeStaticSubscriber"
+    ]
+}
