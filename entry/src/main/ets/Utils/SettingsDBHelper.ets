@@ -48,10 +48,10 @@ class SettingsDBHelper {
   }
 
   private async firstStartupConfig() : Promise<void> {
-    Log.I("firstStartupConfig start");
+    Log.info("firstStartupConfig start");
     let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE)
     let isFirst = await storage.get('isFirstStartUp', true)
-    Log.I("firstStartupConfig isFirstStartUp = " + isFirst);
+    Log.info("firstStartupConfig isFirstStartUp = " + isFirst);
     if (isFirst) {
       // 创建公共数据表
       await this.rdbStore_.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
@@ -61,17 +61,17 @@ class SettingsDBHelper {
       await storage.flush();
       await this.loadDefaultSettingsData();
     }
-    Log.I("firstStartupConfig end");
+    Log.info("firstStartupConfig end");
     return;
   }
 
   public async initRdbStore() {
-    Log.I('call initRdbStore start');
+    Log.info('call initRdbStore start');
     this.rdbStore_ = await ohosDataRdb.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME }, 1);
 
     await this.firstStartupConfig();
 
-    Log.I('call initRdbStore end');
+    Log.info('call initRdbStore end');
     return this.rdbStore_;
   }
 
@@ -91,31 +91,31 @@ class SettingsDBHelper {
 
   private async loadGlobalSettings(key, value): Promise<void> {
     if (!this.rdbStore_) {
-      Log.E('rdbStore is null!');
+      Log.error('rdbStore is null!');
       return
     }
-    Log.I("key=" + key + " value " + value);
+    Log.info("key=" + key + " value " + value);
     await this.rdbStore_.insert(SettingsDataConfig.TABLE_NAME, { "KEYWORD": key, "VALUE": value }, (err, ret) => {
         if (err) {
-          Log.E("loadGlobalSettings insert error:" + JSON.stringify(err));
+          Log.error("loadGlobalSettings insert error:" + JSON.stringify(err));
         }
-        Log.I("loadGlobalSettings insert ret = " + ret);
+        Log.info("loadGlobalSettings insert ret = " + ret);
       }
     );
   }
 
   public async loadUserSettings(key, value, userId: number): Promise<void> {
     if (!this.rdbStore_) {
-      Log.E('rdbStore is null!');
+      Log.error('rdbStore is null!');
       return
     }
-    Log.I("key=" + key + " value " + value + " userid " + userId);
+    Log.info("key=" + key + " value " + value + " userid " + userId);
     await this.rdbStore_.insert(SettingsDataConfig.USER_TABLE_NAME + '_' + userId,
       { "KEYWORD": key, "VALUE": value }, (err, ret) => {
       if (err) {
-        Log.E("loadGlobalSettings insert error:" + JSON.stringify(err));
+        Log.error("loadGlobalSettings insert error:" + JSON.stringify(err));
       }
-      Log.I("loadGlobalSettings insert ret = " + ret);
+      Log.info("loadGlobalSettings insert ret = " + ret);
     });
   }
 
@@ -125,22 +125,22 @@ class SettingsDBHelper {
       let content = await this.context_.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME);
       rawStr = String.fromCharCode.apply(null, content);
     } catch (err) {
-      Log.E("readDefaultFile readRawFile err" + err);
+      Log.error("readDefaultFile readRawFile err" + err);
     }
 
     if (rawStr) {
-      Log.I("readDefaultFile success");
+      Log.info("readDefaultFile success");
       return JSON.parse(rawStr);
     }
     return rawStr;
   }
 
   private async loadDefaultSettingsData() {
-    Log.I("loadDefaultSettingsData start");
+    Log.info("loadDefaultSettingsData start");
     try {
       let content = await this.readDefaultFile();
       if (!content) {
-        Log.E("readDefaultFile is failed!");
+        Log.error("readDefaultFile is failed!");
         return
       }
       for (var index = 0; index < content.settings.length; index++) {
@@ -153,7 +153,7 @@ class SettingsDBHelper {
         }
       }
     } catch (err) {
-      Log.E("loadDefaultSettingsData catch error! err = " + err);
+      Log.error("loadDefaultSettingsData catch error! err = " + err);
     }
 
     // 初始化设备名称
@@ -171,7 +171,7 @@ class SettingsDBHelper {
     if (defaultBrightness) {
       await this.loadGlobalSettings(settings.display.SCREEN_BRIGHTNESS_STATUS, defaultBrightness);
     }
-    Log.I("loadDefaultSettingsData end");
+    Log.info("loadDefaultSettingsData end");
   }
 }
 

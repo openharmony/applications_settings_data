@@ -16,90 +16,90 @@
 import hiLog from '@ohos.hilog';
 
 const DOMAIN: number = 0x0500;
-const TAG = "SettingsData";
+const TAG = 'SettingsData';
 
 /**
  * Basic log class
  */
 export class Log {
-    /**
-     * Outputs info-level logs.
-     *
-     * @param tag Identifies the log tag.
-     * @param format Indicates the log format string.
-     * @param args Indicates the log parameters.
-     * @since 7
-     */
-    static I(format: string, ...args: any[]) {
-        if (Log.isLoggable(hiLog.LogLevel.INFO)) {
-            hiLog.info(DOMAIN, TAG, format, args);
-        }
+  /**
+   * Outputs info-level logs.
+   *
+   * @param tag Identifies the log tag.
+   * @param format Indicates the log format string.
+   * @param args Indicates the log parameters.
+   * @since 7
+   */
+  static info(format: string, ...args: string[]): void {
+    if (Log.isLoggable(hiLog.LogLevel.INFO)) {
+      hiLog.info(DOMAIN, TAG, format, args);
     }
+  }
 
-    /**
-    * Outputs debug-level logs.
-    *
-    * @param tag Identifies the log tag.
-    * @param format Indicates the log format string.
-    * @param args Indicates the log parameters.
-    * @since 7
-    */
-    static D(format: string, ...args: any[]) {
-        if (Log.isLoggable(hiLog.LogLevel.DEBUG)) {
-            hiLog.debug(DOMAIN, TAG, format, args);
-        }
+  /**
+   * Outputs debug-level logs.
+   *
+   * @param tag Identifies the log tag.
+   * @param format Indicates the log format string.
+   * @param args Indicates the log parameters.
+   * @since 7
+   */
+  static debug(format: string, ...args: string[]): void{
+    if (Log.isLoggable(hiLog.LogLevel.DEBUG)) {
+      hiLog.debug(DOMAIN, TAG, format, args);
     }
+  }
 
-    /**
-     * Outputs warning-level logs.
-     *
-     * @param tag Identifies the log tag.
-     * @param format Indicates the log format string.
-     * @param args Indicates the log parameters.
-     * @since 7
-     */
-    static W(format: string, ...args: any[]) {
-        if (Log.isLoggable(hiLog.LogLevel.WARN)) {
-            hiLog.warn(DOMAIN, TAG, format, args);
-        }
+  /**
+   * Outputs warning-level logs.
+   *
+   * @param tag Identifies the log tag.
+   * @param format Indicates the log format string.
+   * @param args Indicates the log parameters.
+   * @since 7
+   */
+  static warn(format: string, ...args: string[]): void {
+    if (Log.isLoggable(hiLog.LogLevel.WARN)) {
+      hiLog.warn(DOMAIN, TAG, format, args);
     }
+  }
 
-    /**
-     * Outputs error-level logs.
-     *
-     * @param tag Identifies the log tag.
-     * @param format Indicates the log format string.
-     * @param args Indicates the log parameters.
-     * @since 7
-     */
-    static E(format: string, ...args: any[]) {
-        if (Log.isLoggable(hiLog.LogLevel.ERROR)) {
-            hiLog.error(DOMAIN, TAG, format, args);
-        }
+  /**
+   * Outputs error-level logs.
+   *
+   * @param tag Identifies the log tag.
+   * @param format Indicates the log format string.
+   * @param args Indicates the log parameters.
+   * @since 7
+   */
+  static error(format: string, ...args: string[]): void {
+    if (Log.isLoggable(hiLog.LogLevel.ERROR)) {
+      hiLog.error(DOMAIN, TAG, format, args);
     }
+  }
 
-    /**
-     * Outputs fatal-level logs.
-     *
-     * @param tag Identifies the log tag.
-     * @param format Indicates the log format string.
-     * @param args Indicates the log parameters.
-     * @since 7
-     */
-    static F(format: string, ...args: any[]) {
-        if (Log.isLoggable(hiLog.LogLevel.FATAL)) {
-            hiLog.fatal(DOMAIN, TAG, format, args);
-        }
+  /**
+   * Outputs fatal-level logs.
+   *
+   * @param tag Identifies the log tag.
+   * @param format Indicates the log format string.
+   * @param args Indicates the log parameters.
+   * @since 7
+   */
+  static fatal(format: string, ...args: string[]): void {
+    if (Log.isLoggable(hiLog.LogLevel.FATAL)) {
+      hiLog.fatal(DOMAIN, TAG, format, args);
     }
+  }
 
-    /**
-     * Checks whether logs of the specified tag, and level can be printed.
-     *
-     * @param tag Identifies the log tag.
-     * @param level log level
-     * @since 7
-     */
-    private static isLoggable(level: hiLog.LogLevel): boolean {
-        return hiLog.isLoggable(DOMAIN, TAG, level);
-    }
+  /**
+   * Checks whether logs of the specified tag, and level can be printed.
+   *
+   * @param tag Identifies the log tag.
+   * @param level log level
+   * @since 7
+   */
+  private static isLoggable(level: number): boolean {
+    return hiLog.isLoggable(DOMAIN, TAG, level);
+  }
 }
