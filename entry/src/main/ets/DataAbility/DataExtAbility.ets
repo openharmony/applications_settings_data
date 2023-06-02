@@ -41,7 +41,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
     }
 
     onInitialized() {
-        Log.I('onInitialize start');
+        Log.info('onInitialize start');
         let context = globalThis.abilityContext;
         if (context != null) {
             SettingsDBHelper.getInstance().getRdbStore().then((rdb: any) => {
@@ -53,29 +53,29 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                     let value = requests[i]["value"];
                     if (opt == "insert") {
                         rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
-                            Log.I('onInitialized insert ret: ' + ret);
+                            Log.info('onInitialized insert ret: ' + ret);
                         });
                     } else if (opt == "query") {
                         rdbStore.query(predicates, columns, function (err, resultSet) {
-                            Log.I('onInitialized query ret: ' + JSON.stringify(resultSet));
+                            Log.info('onInitialized query ret: ' + JSON.stringify(resultSet));
                         });
                     } else if (opt == "update") {
                         rdbStore.update(value, predicates, function (err, ret) {
-                            Log.I('onInitialized update ret: ' + ret);
+                            Log.info('onInitialized update ret: ' + ret);
                         });
                     }
                 }
             }).catch(err => {
-                Log.E('onInitialize failed:' + JSON.stringify(err));
+                Log.error('onInitialize failed:' + JSON.stringify(err));
             })
         } else {
-            Log.I('onInitialize context error!');
+            Log.info('onInitialize context error!');
         }
-        Log.I('onInitialize end');
+        Log.info('onInitialize end');
     }
 
     insert(uri, value, callback) {
-        Log.I('insert keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
+        Log.info('insert keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
         let rdbInsert = (GrantStatus) => {
             if (!GrantStatus) {
                 callback(-1, 0);
@@ -86,28 +86,28 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                 let request = {
                     "operation": "insert", "columns": null, "predicates": null, value: value
                 };
-                Log.I('insert request = ' + JSON.stringify(request));
+                Log.info('insert request = ' + JSON.stringify(request));
                 requests.push(request);
                 callback(-1, 0);
             } else {
                 rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
                     callback(err, ret);
-                    Log.I('insert result: ' + ret);
+                    Log.info('insert result: ' + ret);
                 });
             }
         }
 
         try {
-            Log.I('Start to verify permissions.');
+            Log.info('Start to verify permissions.');
             this.verifyPermission(value, rdbInsert);
         } catch (err) {
-            Log.E('Insert Data error:' + JSON.stringify(err));
+            Log.error('Insert Data error:' + JSON.stringify(err));
             callback(-1, 0);
         }
     }
 
     update(uri: string, predicates, value, callback) {
-        Log.I('update keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
+        Log.info('update keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
         let rdbUpData = (GrantStatus) => {
             if (!GrantStatus) {
                 callback(-1, 0);
@@ -118,40 +118,40 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                 let request = {
                     "operation": "update", "columns": null, "predicates": predicates, value: value
                 };
-                Log.I('update request = ' + JSON.stringify(request));
+                Log.info('update request = ' + JSON.stringify(request));
                 requests.push(request);
                 callback(-1, 0);
             } else {
                 rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, function (err, ret) {
                     callback(err, ret);
-                    Log.I('update result: ' + ret);
+                    Log.info('update result: ' + ret);
                 });
             }
         }
         try {
-            Log.I('Start to verify permissions.');
+            Log.info('Start to verify permissions.');
             this.verifyPermission(value, rdbUpData);
         } catch (err) {
-            Log.E('upData error:' + JSON.stringify(err));
+            Log.error('upData error:' + JSON.stringify(err));
             callback(-1, 0);
         }
     }
 
     delete(uri: string, predicates, callback) {
-        Log.I('nothing to do');
+        Log.info('nothing to do');
     }
 
     query(uri: string, predicates, columns: Array<string>, callback) {
-        Log.I( 'query start uri:' + uri);
+        Log.info( 'query start uri:' + uri);
         if (rdbStore == null) {
             let request= {"operation":"query", "columns" : columns, "predicates" : predicates, value:""};
-            Log.I('query request = '+ JSON.stringify(request));
+            Log.info('query request = '+ JSON.stringify(request));
             requests.push(request);
             callback(-1, {"_napiwrapper":{}});
         } else {
             rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, function (err, resultSet) {
                 callback(err, resultSet);
-                Log.I('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
+                Log.info('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
             });
         }
     }
@@ -162,34 +162,34 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                 try {
                     let volumeType = Audio.AudioVolumeType.RINGTONE;
                     Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
-                        Log.I('settings Promise returned to indicate a successful RINGTONE setting.')
+                        Log.info('settings Promise returned to indicate a successful RINGTONE setting.')
                     });
                 } catch (err) {
-                    Log.I('settings RINGTONE failed error = ' + JSON.stringify(err));
+                    Log.info('settings RINGTONE failed error = ' + JSON.stringify(err));
                 }
                 break
             case SETTINGS_AUDIO_MEDIA:
                 try {
                     let volumeType = Audio.AudioVolumeType.MEDIA;
                     Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
-                        Log.I('settings Promise returned to indicate a successful MEDIA setting.')
+                        Log.info('settings Promise returned to indicate a successful MEDIA setting.')
                     });
                 } catch (err) {
-                    Log.I('settings MEDIA failed error = ' + JSON.stringify(err));
+                    Log.info('settings MEDIA failed error = ' + JSON.stringify(err));
                 }
                 break
             case SETTINGS_AUDIO_VOICE_CALL:
                 try {
                     let volumeType = Audio.AudioVolumeType.VOICE_CALL;
                     Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
-                        Log.I('settings Promise returned to indicate a successful VOICE_CALL setting.')
+                        Log.info('settings Promise returned to indicate a successful VOICE_CALL setting.')
                     });
                 } catch (err) {
-                    Log.I('settings VOICE_CALL failed error = ' + JSON.stringify(err));
+                    Log.info('settings VOICE_CALL failed error = ' + JSON.stringify(err));
                 }
                 break
             default:
-                Log.I(settingsKey + ' key is not audio');
+                Log.info(settingsKey + ' key is not audio');
                 break
         }
     }
@@ -201,22 +201,22 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         }
         try {
             let tokenID = rpc.IPCSkeleton.getCallingTokenId();
-            Log.I('tokenID = ' + tokenID);
+            Log.info('tokenID = ' + tokenID);
             let grantStatus = abilityAccessCtrl.createAtManager().verifyAccessToken(tokenID, "ohos.permission.MANAGE_SECURE_SETTINGS");
             grantStatus.then(data => {
                 if (data == abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
-                    Log.I('MANAGE_SECURE_SETTINGS active');
+                    Log.info('MANAGE_SECURE_SETTINGS active');
                     callBack(true);
                 } else {
-                    Log.W('MANAGE_SECURE_SETTINGS grantStatus= ' + JSON.stringify(data));
+                    Log.warn('MANAGE_SECURE_SETTINGS grantStatus= ' + JSON.stringify(data));
                     callBack(false);
                 }
             }).catch((err) => {
-                Log.E('tokenID = ' + tokenID + ' verifyAccessToken is failed: ' + JSON.stringify(err));
+                Log.error('tokenID = ' + tokenID + ' verifyAccessToken is failed: ' + JSON.stringify(err));
                 callBack(false);
             })
         } catch (err) {
-            Log.E('err = ' + JSON.stringify(err));
+            Log.error('err = ' + JSON.stringify(err));
             callBack(false);
         }
     }

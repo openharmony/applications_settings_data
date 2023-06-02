@@ -28,7 +28,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
     if (!event) {
       return
     }
-    Log.I(TAG + 'onReceiveEvent, event' + JSON.stringify(event))
+    Log.info(TAG + 'onReceiveEvent, event' + JSON.stringify(event))
     let rdb: ohosDataRdb.RdbStore = await SettingsDBHelper.getInstance().getRdbStore();
     switch (event.event) {
       case commonEventManager.Support.COMMON_EVENT_USER_ADDED:
@@ -38,7 +38,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         try {
           let content = await SettingsDBHelper.getInstance().readDefaultFile();
           if (!content) {
-            Log.E("readDefaultFile is failed!");
+            Log.error("readDefaultFile is failed!");
             return
           }
           for (var index = 0; index < content.settings.length; index++) {
@@ -47,7 +47,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
             }
           }
         } catch (err) {
-          Log.E("loadDefaultSettingsData failed! err = " + err);
+          Log.error("loadDefaultSettingsData failed! err = " + err);
         }
         break
       case commonEventManager.Support.COMMON_EVENT_USER_REMOVED:
