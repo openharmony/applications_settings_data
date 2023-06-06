@@ -44,7 +44,7 @@ export class Log {
    * @param args Indicates the log parameters.
    * @since 7
    */
-  static debug(format: string, ...args: string[]): void{
+  static debug(format: string, ...args: string[]): void {
     if (Log.isLoggable(hiLog.LogLevel.DEBUG)) {
       hiLog.debug(DOMAIN, TAG, format, args);
     }
@@ -99,7 +99,7 @@ export class Log {
    * @param level log level
    * @since 7
    */
-  private static isLoggable(level: number): boolean {
+  private static isLoggable(level: hiLog.LogLevel): boolean {
     return hiLog.isLoggable(DOMAIN, TAG, level);
   }
 }
