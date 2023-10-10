@@ -13,13 +13,18 @@
  * limitations under the License.
  */
 
-const SettingsDataConfig = {
-  DB_NAME: 'settingsdata.db',
-  TABLE_NAME: 'SETTINGSDATA',
-  USER_TABLE_NAME: 'USER_SETTINGSDATA',
-  FIELD_ID: 'ID',
-  FIELD_KEYWORD: 'KEYWORD',
-  FIELD_VALUE: 'VALUE'
-};
+import hiLog from '@ohos.hilog';
+import common from '@ohos.app.ability.common';
+import SettingsDBHelper from './SettingsDBHelper';
 
-export default SettingsDataConfig;
+const DOMAIN: number = 0x0500;
+const TAG = 'SettingsData';
+
+/**
+ * GlobalContext class
+ */
+
+export class GlobalContext {
+  public static dbHelper:Object | undefined = undefined;
+  public static thisContext: Object | undefined = undefined;
+}
