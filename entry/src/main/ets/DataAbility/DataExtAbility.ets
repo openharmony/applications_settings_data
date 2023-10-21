@@ -13,18 +13,31 @@
  * limitations under the License.
  */
 
+import common from '@ohos.app.ability.common';
 import Audio from '@ohos.multimedia.audio';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 import DataShareExtensionAbility from '@ohos.application.DataShareExtensionAbility';
 import rpc from '@ohos.rpc';
+import process from '@ohos.process';
+import settings from '@ohos.settings';
+import relationalStore from '@ohos.data.relationalStore';
+import Want from '@ohos.app.ability.Want';
+import dataSharePredicates from '@ohos.data.dataSharePredicates';
+import { AsyncCallback, BusinessError } from '@ohos.base';
 import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import SettingsDBHelper from '../Utils/SettingsDBHelper';
 import { Log } from '../Utils/Log';
-import process from '@ohos.process';
-import settings from '@ohos.settings';
+import { GlobalContext}  from '../Utils/GlobalContext';
 
-let rdbStore;
-let requests:any[] = [];
+
+interface  IRequest {
+    operation:string ;
+    columns:string[];
+    predicates:dataSharePredicates.DataSharePredicates|relationalStore.RdbPredicates|null;
+    value:relationalStore.ValuesBucket|null
+}
+let rdbStore:relationalStore.RdbStore;
+let requests:IRequest[] = [];
 let SETTINGS_AUDIO_RINGTONE = "settings.audio.ringtone"
 let SETTINGS_AUDIO_MEDIA = "settings.audio.media"
 let SETTINGS_AUDIO_VOICE_CALL = "settings.audio.voicecall"
@@ -33,39 +46,51 @@ settings.display.SCREEN_BRIGHTNESS_STATUS,
 settings.display.AUTO_SCREEN_BRIGHTNESS,
 settings.display.SCREEN_OFF_TIMEOUT
 ];
+let ret:number = 0;
+let err:BusinessError = {"code":-1} as BusinessError;
 
 export default class DataExtAbility extends DataShareExtensionAbility {
     onCreate(want) {
-        globalThis.abilityContext = this.context;
+        GlobalContext.thisContext =  this.context;
         this.onInitialized();
+        Log.info('onCreate  context'+ JSON.stringify(this.context));
     }
 
     onInitialized() {
         Log.info('onInitialize start');
-        let context = globalThis.abilityContext;
-        if (context != null) {
-            SettingsDBHelper.getInstance().getRdbStore().then((rdb: any) => {
+        let context = GlobalContext.thisContext as common.Context;
+        Log.info('onInitialize start context: '+ JSON.stringify(this.context));
+        if (context !== undefined) {
+            SettingsDBHelper.getInstance().getRdbStore().then((rdb: relationalStore.RdbStore) => {
                 rdbStore = rdb;
                 for (let i = 0; i < requests.length; i++) {
-                    let opt: string = requests[i]["operation"];
-                    let columns = requests[i]["columns"];
-                    let predicates = requests[i]["predicates"];
-                    let value = requests[i]["value"];
+                    let opt: string = requests[i].operation;
+                    let columns: string[] = requests[i].columns;
+                    let predicates = (requests[i].predicates) as dataSharePredicates.DataSharePredicates;
+
+                    let value: relationalStore.ValuesBucket|null = requests[i].value;
                     if (opt == "insert") {
-                        rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
-                            Log.info('onInitialized insert ret: ' + ret);
-                        });
+                        if(value){
+                            rdbStore.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
+                                Log.info('onInitialized insert ret: ' + ret);
+                            });
+                        }
                     } else if (opt == "query") {
-                        rdbStore.query(predicates, columns, function (err, resultSet) {
-                            Log.info('onInitialized query ret: ' + JSON.stringify(resultSet));
-                        });
+                        if(predicates){
+                            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, (err: BusinessError, resultSet: relationalStore.ResultSet) => {
+                                    Log.info('onInitialized query ret: ' + JSON.stringify(resultSet));
+                                });
+                        }
+
                     } else if (opt == "update") {
-                        rdbStore.update(value, predicates, function (err, ret) {
-                            Log.info('onInitialized update ret: ' + ret);
-                        });
+                        if(value){
+                            rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, (err, ret) => {
+                                Log.info('onInitialized update ret: ' + ret);
+                            });
+                        }
                     }
                 }
-            }).catch(err => {
+            }).catch((err: Error) => {
                 Log.error('onInitialize failed:' + JSON.stringify(err));
             })
         } else {
@@ -74,23 +99,24 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         Log.info('onInitialize end');
     }
 
-    insert(uri, value, callback) {
+    insert(uri: string, value: relationalStore.ValuesBucket, callback : AsyncCallback<number>) {
         Log.info('insert keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
-        let rdbInsert = (GrantStatus) => {
+        let rdbInsert = (GrantStatus: boolean) => {
             if (!GrantStatus) {
-                callback(-1, 0);
+                callback(err, ret);
                 return;
             }
-            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD], value[SettingsDataConfig.FIELD_VALUE]);
+            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD]?.toString(), value[SettingsDataConfig.FIELD_VALUE]?.toString());
+
             if (rdbStore == null) {
-                let request = {
-                    "operation": "insert", "columns": null, "predicates": null, value: value
+                let request: IRequest= {
+                    operation: "insert", columns: [], predicates: null, value: value
                 };
                 Log.info('insert request = ' + JSON.stringify(request));
                 requests.push(request);
-                callback(-1, 0);
+                callback(err, ret);
             } else {
-                rdbStore.insert(SettingsDataConfig.TABLE_NAME, value, function (err, ret) {
+                rdbStore.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
                     callback(err, ret);
                     Log.info('insert result: ' + ret);
                 });
@@ -102,27 +128,28 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             this.verifyPermission(value, rdbInsert);
         } catch (err) {
             Log.error('Insert Data error:' + JSON.stringify(err));
-            callback(-1, 0);
+            callback(err, ret);
         }
     }
 
-    update(uri: string, predicates, value, callback) {
+
+    update(uri: string, predicates: dataSharePredicates.DataSharePredicates, value:relationalStore.ValuesBucket, callback: AsyncCallback<number>) {
         Log.info('update keyword = ' + value[SettingsDataConfig.FIELD_KEYWORD] + ' start:' + uri);
-        let rdbUpData = (GrantStatus) => {
+        let rdbUpData = (GrantStatus:boolean) => {
             if (!GrantStatus) {
-                callback(-1, 0);
+                callback(err, ret);
                 return;
             }
-            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD], value[SettingsDataConfig.FIELD_VALUE]);
+            this.DoSystemSetting(value[SettingsDataConfig.FIELD_KEYWORD]?.toString(), value[SettingsDataConfig.FIELD_VALUE]?.toString());
             if (rdbStore == null) {
-                let request = {
-                    "operation": "update", "columns": null, "predicates": predicates, value: value
+                let request : IRequest= {
+                    operation: "update", columns: [], predicates: predicates, value: value
                 };
                 Log.info('update request = ' + JSON.stringify(request));
                 requests.push(request);
-                callback(-1, 0);
+                callback(err, ret);
             } else {
-                rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, function (err, ret) {
+                rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates , (err, ret)=> {
                     callback(err, ret);
                     Log.info('update result: ' + ret);
                 });
@@ -133,26 +160,26 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             this.verifyPermission(value, rdbUpData);
         } catch (err) {
             Log.error('upData error:' + JSON.stringify(err));
-            callback(-1, 0);
+            callback(err, ret);
         }
     }
 
-    delete(uri: string, predicates, callback) {
+    delete(uri: string, predicates: dataSharePredicates.DataSharePredicates, callback: AsyncCallback<number>) {
         Log.info('nothing to do');
     }
 
-    query(uri: string, predicates, columns: Array<string>, callback) {
+    query(uri: string, predicates: dataSharePredicates.DataSharePredicates, columns: string[], callback: AsyncCallback<Object>) {
         Log.info( 'query start uri:' + uri);
         if (rdbStore == null) {
-            let request= {"operation":"query", "columns" : columns, "predicates" : predicates, value:""};
+            let request: IRequest= {operation:"query", columns : columns, predicates : predicates, value:null};
             Log.info('query request = '+ JSON.stringify(request));
             requests.push(request);
-            callback(-1, {"_napiwrapper":{}});
+            callback(err, {"_napiwrapper":{}});
         } else {
-            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, function (err, resultSet) {
+            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns,  (err:BusinessError, resultSet:relationalStore.ResultSet)=> {
                 callback(err, resultSet);
                 Log.info('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
-            });
+            })
         }
     }
 
@@ -161,7 +188,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             case SETTINGS_AUDIO_RINGTONE:
                 try {
                     let volumeType = Audio.AudioVolumeType.RINGTONE;
-                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                    Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
                         Log.info('settings Promise returned to indicate a successful RINGTONE setting.')
                     });
                 } catch (err) {
@@ -171,7 +198,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             case SETTINGS_AUDIO_MEDIA:
                 try {
                     let volumeType = Audio.AudioVolumeType.MEDIA;
-                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                    Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
                         Log.info('settings Promise returned to indicate a successful MEDIA setting.')
                     });
                 } catch (err) {
@@ -181,7 +208,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             case SETTINGS_AUDIO_VOICE_CALL:
                 try {
                     let volumeType = Audio.AudioVolumeType.VOICE_CALL;
-                    Audio.getAudioManager().setVolume(volumeType, parseInt(settingsValue)).then(() => {
+                    Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
                         Log.info('settings Promise returned to indicate a successful VOICE_CALL setting.')
                     });
                 } catch (err) {
@@ -194,8 +221,8 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         }
     }
 
-    private verifyPermission(value, callBack) {
-        if (this.isTrustList(value[SettingsDataConfig.FIELD_KEYWORD]) || process.uid == rpc.IPCSkeleton.getCallingUid()) {
+    private verifyPermission(value: relationalStore.ValuesBucket, callBack: (GrantStatus: boolean) => void ) {
+        if (this.isTrustList(value[SettingsDataConfig.FIELD_KEYWORD]?.toString()) || process.uid == rpc.IPCSkeleton.getCallingUid()) {
             callBack(true);
             return;
         }
@@ -221,7 +248,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         }
     }
 
-    private isTrustList(keyWord: String): boolean {
+    private isTrustList(keyWord: string): boolean {
         return trustList.includes(keyWord)
     }
 }

@@ -13,23 +13,29 @@
  * limitations under the License.
  */
 
+import common from '@ohos.app.ability.common';
 import dataStorage from '@ohos.data.preferences';
 import deviceInfo from '@ohos.deviceInfo';
-import ohosDataRdb from '@ohos.data.rdb';
+import relationalStore from '@ohos.data.relationalStore';
 import i18n from '@ohos.i18n';
 import settings from '@ohos.settings';
 import systemParameter from '@ohos.systemparameter';
-import SettingsDataConfig from '../Utils/SettingsDataConfig';
+import SettingsDataConfig from './SettingsDataConfig';
 import { Log } from '../Utils/Log';
-
+import { GlobalContext }  from './GlobalContext';
 const DEFAULT_JSON_FILE_NAME : string = "default_settings.json";
 const SETTINGSDATA_PREFERENCE : string = "SettingsDataPreference";
-
-const TIME_FORMAT = {
+interface  TIME_FORMAT_DATA {
+  TIME_FORMAT_24: string ;
+  TIME_FORMAT_12: string ;
+}
+const TIME_FORMAT: TIME_FORMAT_DATA = {
   TIME_FORMAT_24: "24",
   TIME_FORMAT_12: "12",
 }
-
+interface IContent {
+  settings: Array<Map<string,string>> ;
+}
 class SettingsDBHelper {
   static readonly SHARED_TABLE_CREATE_PREFIX = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME}`;
   // 需要在在表名后拼接当前的userid
@@ -38,25 +44,27 @@ class SettingsDBHelper {
   + `${SettingsDataConfig.FIELD_KEYWORD} TEXT, `
   + `${SettingsDataConfig.FIELD_VALUE} TEXT CHECK (LENGTH(VALUE)<=1000))`;
 
-  private rdbStore_: ohosDataRdb.RdbStore;
-  private context_;
+  private rdbStore_?: relationalStore.RdbStore;
+  private context_ ;
   private readonly DEFAULT_USER_ID: number = 100;
 
   private constructor() {
     this.rdbStore_ = undefined;
-    this.context_ = globalThis.abilityContext;
+    this.context_ = GlobalContext.thisContext as common.BaseContext;
+    Log.info("context_ start"+ JSON.stringify(this.context_));
   }
 
   private async firstStartupConfig() : Promise<void> {
     Log.info("firstStartupConfig start");
-    let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE)
-    let isFirst = await storage.get('isFirstStartUp', true)
+    let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE);
+    Log.info("context_ storage = " + this.context_);
+    let isFirst: dataStorage.ValueType = await storage.get('isFirstStartUp', true);
     Log.info("firstStartupConfig isFirstStartUp = " + isFirst);
     if (isFirst) {
       // 创建公共数据表
-      await this.rdbStore_.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      await this.rdbStore_?.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
       // 创建默认用户数据表
-      await this.rdbStore_.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX + this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      await this.rdbStore_?.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX + this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
       await storage.put('isFirstStartUp', false);
       await storage.flush();
       await this.loadDefaultSettingsData();
@@ -67,7 +75,11 @@ class SettingsDBHelper {
 
   public async initRdbStore() {
     Log.info('call initRdbStore start');
-    this.rdbStore_ = await ohosDataRdb.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME }, 1);
+    let  rdbStore = await relationalStore.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME,securityLevel:1 });
+    if(rdbStore){
+      this.rdbStore_ = rdbStore;
+    }
+
 
     await this.firstStartupConfig();
 
@@ -75,21 +87,23 @@ class SettingsDBHelper {
     return this.rdbStore_;
   }
 
-  public static getInstance() {
-    if (!globalThis.settingsDBHelper) {
-      globalThis.settingsDBHelper = new SettingsDBHelper();
+  public static getInstance(): SettingsDBHelper {
+    Log.info("getInstance GlobalContext" + JSON.stringify(GlobalContext));
+    if(GlobalContext.dbHelper === undefined){
+      GlobalContext.dbHelper = new SettingsDBHelper();
     }
-    return globalThis.settingsDBHelper;
+    return GlobalContext.dbHelper as SettingsDBHelper;
   }
 
   public async getRdbStore() {
     if (!this.rdbStore_) {
-      return await globalThis.settingsDBHelper.initRdbStore();
+      return  await (GlobalContext.dbHelper as SettingsDBHelper).initRdbStore();
+      // return await globalThis.settingsDBHelper.initRdbStore();
     }
     return this.rdbStore_
   }
 
-  private async loadGlobalSettings(key, value): Promise<void> {
+  private async loadGlobalSettings(key: string, value: string): Promise<void> {
     if (!this.rdbStore_) {
       Log.error('rdbStore is null!');
       return
@@ -104,7 +118,7 @@ class SettingsDBHelper {
     );
   }
 
-  public async loadUserSettings(key, value, userId: number): Promise<void> {
+  public async loadUserSettings(key: string, value: string, userId: number): Promise<void> {
     if (!this.rdbStore_) {
       Log.error('rdbStore is null!');
       return
@@ -119,11 +133,11 @@ class SettingsDBHelper {
     });
   }
 
-  public async readDefaultFile() {
+  public async readDefaultFile(): Promise<Object> {
     let rawStr: string = "";
     try {
-      let content = await this.context_.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME);
-      rawStr = String.fromCharCode.apply(null, content);
+      let content: number[] = await this.context_?.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME);
+      rawStr = String.fromCharCode(...Array.from(content));
     } catch (err) {
       Log.error("readDefaultFile readRawFile err" + err);
     }
@@ -135,21 +149,21 @@ class SettingsDBHelper {
     return rawStr;
   }
 
-  private async loadDefaultSettingsData() {
+  private async loadDefaultSettingsData(): Promise<void> {
     Log.info("loadDefaultSettingsData start");
     try {
-      let content = await this.readDefaultFile();
+      let content = await this.readDefaultFile() as IContent;
       if (!content) {
         Log.error("readDefaultFile is failed!");
-        return
+        return;
       }
-      for (var index = 0; index < content.settings.length; index++) {
-        if (content.settings[index].userConfig) {
+      for (let index = 0; index < content.settings.length; index++) {
+        if (content.settings[index]["userConfig"]) {
           // 加载用户数据表的默认值
-          await this.loadUserSettings(content.settings[index].name, content.settings[index].value, this.DEFAULT_USER_ID)
+          await this.loadUserSettings(content.settings[index]["name"], content.settings[index]["value"], this.DEFAULT_USER_ID)
         } else {
           // 加载公共数据表的默认值
-          await this.loadGlobalSettings(content.settings[index].name, content.settings[index].value);
+          await this.loadGlobalSettings(content.settings[index]["name"], content.settings[index]["value"]);
         }
       }
     } catch (err) {
