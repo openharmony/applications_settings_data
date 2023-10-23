@@ -88,7 +88,6 @@ class SettingsDBHelper {
   }
 
   public static getInstance(): SettingsDBHelper {
-    Log.info("getInstance GlobalContext" + JSON.stringify(GlobalContext));
     if(GlobalContext.dbHelper === undefined){
       GlobalContext.dbHelper = new SettingsDBHelper();
     }

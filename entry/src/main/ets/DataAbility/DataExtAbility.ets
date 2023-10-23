@@ -36,7 +36,7 @@ interface  IRequest {
     predicates:dataSharePredicates.DataSharePredicates|relationalStore.RdbPredicates|null;
     value:relationalStore.ValuesBucket|null
 }
-let rdbStore:relationalStore.RdbStore;
+let rdbStore:relationalStore.RdbStore|undefined = undefined;
 let requests:IRequest[] = [];
 let SETTINGS_AUDIO_RINGTONE = "settings.audio.ringtone"
 let SETTINGS_AUDIO_MEDIA = "settings.audio.media"
@@ -50,7 +50,7 @@ let ret:number = 0;
 let err:BusinessError = {"code":-1} as BusinessError;
 
 export default class DataExtAbility extends DataShareExtensionAbility {
-    onCreate(want) {
+    onCreate(want: Want) {
         GlobalContext.thisContext =  this.context;
         this.onInitialized();
         Log.info('onCreate  context'+ JSON.stringify(this.context));
@@ -61,7 +61,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         let context = GlobalContext.thisContext as common.Context;
         Log.info('onInitialize start context: '+ JSON.stringify(this.context));
         if (context !== undefined) {
-            SettingsDBHelper.getInstance().getRdbStore().then((rdb: relationalStore.RdbStore) => {
+            SettingsDBHelper.getInstance().getRdbStore().then((rdb: relationalStore.RdbStore|undefined) => {
                 rdbStore = rdb;
                 for (let i = 0; i < requests.length; i++) {
                     let opt: string = requests[i].operation;
@@ -183,7 +183,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         }
     }
 
-    private DoSystemSetting(settingsKey: string, settingsValue: string) {
+    private DoSystemSetting(settingsKey: string|undefined, settingsValue: string|undefined) {
         switch (settingsKey) {
             case SETTINGS_AUDIO_RINGTONE:
                 try {
@@ -222,7 +222,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
     }
 
     private verifyPermission(value: relationalStore.ValuesBucket, callBack: (GrantStatus: boolean) => void ) {
-        if (this.isTrustList(value[SettingsDataConfig.FIELD_KEYWORD]?.toString()) || process.uid == rpc.IPCSkeleton.getCallingUid()) {
+        if (this.isTrustList(value[SettingsDataConfig.FIELD_KEYWORD] as string) || process.uid == rpc.IPCSkeleton.getCallingUid()) {
             callBack(true);
             return;
         }
