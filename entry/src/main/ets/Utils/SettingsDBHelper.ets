@@ -117,7 +117,7 @@ class SettingsDBHelper {
     );
   }
 
-  public async loadUserSettings(key: string, value: string, userId: number): Promise<void> {
+  public async loadUserSettings(key: string, value: string, userId: number|undefined): Promise<void> {
     if (!this.rdbStore_) {
       Log.error('rdbStore is null!');
       return
