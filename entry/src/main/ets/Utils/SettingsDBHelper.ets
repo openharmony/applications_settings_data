@@ -45,18 +45,18 @@ class SettingsDBHelper {
   + `${SettingsDataConfig.FIELD_VALUE} TEXT CHECK (LENGTH(VALUE)<=1000))`;
 
   private rdbStore_?: relationalStore.RdbStore;
-  private context_ ;
+  private context_: Context;
   private readonly DEFAULT_USER_ID: number = 100;
 
   private constructor() {
     this.rdbStore_ = undefined;
-    this.context_ = GlobalContext.thisContext as common.BaseContext;
+    this.context_ = GlobalContext.thisContext as Context;
     Log.info("context_ start"+ JSON.stringify(this.context_));
   }
 
   private async firstStartupConfig() : Promise<void> {
     Log.info("firstStartupConfig start");
-    let storage = await dataStorage.getPreferences(this.context_, SETTINGSDATA_PREFERENCE);
+    let storage = await dataStorage.getPreferences(this.context_ as Context, SETTINGSDATA_PREFERENCE);
     Log.info("context_ storage = " + this.context_);
     let isFirst: dataStorage.ValueType = await storage.get('isFirstStartUp', true);
     Log.info("firstStartupConfig isFirstStartUp = " + isFirst);
@@ -75,7 +75,7 @@ class SettingsDBHelper {
 
   public async initRdbStore() {
     Log.info('call initRdbStore start');
-    let  rdbStore = await relationalStore.getRdbStore(this.context_, { name: SettingsDataConfig.DB_NAME,securityLevel:1 });
+    let  rdbStore = await relationalStore.getRdbStore(this.context_ as Context, { name: SettingsDataConfig.DB_NAME,securityLevel:1 });
     if(rdbStore){
       this.rdbStore_ = rdbStore;
     }
@@ -88,7 +88,6 @@ class SettingsDBHelper {
   }
 
   public static getInstance(): SettingsDBHelper {
-    Log.info("getInstance GlobalContext" + JSON.stringify(GlobalContext));
     if(GlobalContext.dbHelper === undefined){
       GlobalContext.dbHelper = new SettingsDBHelper();
     }
@@ -118,7 +117,7 @@ class SettingsDBHelper {
     );
   }
 
-  public async loadUserSettings(key: string, value: string, userId: number): Promise<void> {
+  public async loadUserSettings(key: string, value: string, userId: number|undefined): Promise<void> {
     if (!this.rdbStore_) {
       Log.error('rdbStore is null!');
       return
@@ -136,7 +135,7 @@ class SettingsDBHelper {
   public async readDefaultFile(): Promise<Object> {
     let rawStr: string = "";
     try {
-      let content: number[] = await this.context_?.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME);
+      let content: number[] = Array.from(await this.context_?.resourceManager.getRawFile(DEFAULT_JSON_FILE_NAME));
       rawStr = String.fromCharCode(...Array.from(content));
     } catch (err) {
       Log.error("readDefaultFile readRawFile err" + err);
