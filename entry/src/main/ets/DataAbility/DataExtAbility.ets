@@ -238,7 +238,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                     Log.warn('MANAGE_SECURE_SETTINGS grantStatus= ' + JSON.stringify(data));
                     callBack(false);
                 }
-            }).catch((err) => {
+            }).catch((err: BusinessError) => {
                 Log.error('tokenID = ' + tokenID + ' verifyAccessToken is failed: ' + JSON.stringify(err));
                 callBack(false);
             })
