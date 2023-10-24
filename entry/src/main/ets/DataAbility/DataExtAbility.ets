@@ -71,20 +71,20 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                     let value: relationalStore.ValuesBucket|null = requests[i].value;
                     if (opt == "insert") {
                         if(value){
-                            rdbStore.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
+                            rdbStore?.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
                                 Log.info('onInitialized insert ret: ' + ret);
                             });
                         }
                     } else if (opt == "query") {
                         if(predicates){
-                            rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns, (err: BusinessError, resultSet: relationalStore.ResultSet) => {
+                            rdbStore?.query(SettingsDataConfig.TABLE_NAME, predicates, columns, (err: BusinessError, resultSet: relationalStore.ResultSet) => {
                                     Log.info('onInitialized query ret: ' + JSON.stringify(resultSet));
                                 });
                         }
 
                     } else if (opt == "update") {
                         if(value){
-                            rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates, (err, ret) => {
+                            rdbStore?.update(SettingsDataConfig.TABLE_NAME, value, predicates, (err, ret) => {
                                 Log.info('onInitialized update ret: ' + ret);
                             });
                         }
