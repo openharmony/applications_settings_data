@@ -44,7 +44,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
             return
           }
           for (let index = 0; index < content.settings.length; index++) {
-            if (content.settings[index]["userConfig"]) {
+            if (content.settings[index]["userConfig"] && event.code) {
               await SettingsDBHelper.getInstance().loadUserSettings(content.settings[index]["name"], content.settings[index]["value"], event.code)
               Log.info("content.settings[index]"+content.settings[index]["value"]);
             }
