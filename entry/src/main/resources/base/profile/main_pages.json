@@ -1,3 +1,5 @@
 {
-  "src": ["DataAbility/DataExtAbility"]
+  "src": [
+    "DataAbility/DataExtAbility"
+  ]
 }
