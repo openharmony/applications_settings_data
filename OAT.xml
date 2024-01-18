@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2021 Huawei Device Co., Ltd.
+<!-- Copyright (c) 2024 Huawei Device Co., Ltd.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -56,14 +56,15 @@
         <filefilterlist>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filepath" name="entry/src/main/resources/base/media/.*.png" desc="self developed image"/>
-
                 <filteritem type="filepath" name="product/phone/src/main/resources/base/media/.*.png" desc="self developed image"/>
             </filefilter>
-			<filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
+            <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
+                <filteritem type="filepath" name="entry/hvigorfile.js" desc="Build files"/>
                 <filteritem type="filename" name="README|README_zh|.*.json5|.*.json" desc=""/>
                 <filteritem type="filename" name="hvigorw|hvigorw.bat|hvigor-wrapper.js" desc="Build files"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="Filters for LICENSE file policies">
+                <filteritem type="filepath" name="entry/hvigorfile.js" desc="Build files"/>
                 <filteritem type="filename" name="README|README_zh|*.json5|*.json" desc="json file"/>
                 <filteritem type="filename" name="hvigorw|hvigorw.bat|hvigor-wrapper.js" desc="Build files"/>
             </filefilter>
