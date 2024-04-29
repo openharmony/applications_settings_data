@@ -117,8 +117,8 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                 callback(err, ret);
             } else {
                 rdbStore.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
-                    callback(err, ret);
                     Log.info('insert result: ' + ret);
+                    callback(err, ret);
                 });
             }
         }
@@ -150,8 +150,8 @@ export default class DataExtAbility extends DataShareExtensionAbility {
                 callback(err, ret);
             } else {
                 rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates , (err, ret)=> {
-                    callback(err, ret);
                     Log.info('update result: ' + ret);
+                    callback(err, ret);
                 });
             }
         }
@@ -177,8 +177,8 @@ export default class DataExtAbility extends DataShareExtensionAbility {
             callback(err, {"_napiwrapper":{}});
         } else {
             rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns,  (err:BusinessError, resultSet:relationalStore.ResultSet)=> {
-                callback(err, resultSet);
                 Log.info('query result: '+ JSON.stringify(resultSet.rowCount) +'columnNames'+ JSON.stringify(resultSet.columnNames));
+                callback(err, resultSet);
             })
         }
     }
