@@ -27,4 +27,24 @@ const TAG = 'SettingsData';
 export class GlobalContext {
   public static dbHelper:Object | undefined = undefined;
   public static thisContext: Object | undefined = undefined;
+  private static instance: GlobalContext | null = null;
+  private context = new Map<string, Object>();
+
+  private constructor() {
+  }
+
+  public static getContext(): GlobalContext {
+    if (GlobalContext.instance === null){
+      GlobalContext.instance = new GlobalContext();
+    }
+    return GlobalContext.instance;
+  }
+
+  getObject(value: string): object | undefined {
+    return this.context.get(value);
+  }
+
+  setObject(key: string, objectClass: object): void {
+    this.context.set(key, objectClass);
+  }
 }
