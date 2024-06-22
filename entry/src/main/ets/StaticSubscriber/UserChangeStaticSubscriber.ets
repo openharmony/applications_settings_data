@@ -26,6 +26,7 @@ const TAG: string = 'UserChangeStaticSubscriber : '
 
 export default class UserChangeStaticSubscriber extends StaticSubscriberExtensionAbility {
   private init() {
+    Log.info('UserChangeStaticSubscriber start!')
     GlobalContext.getContext().setObject('abilityContext', this.context);
     this.context.area = SettingsDBHelper.getInstance().getArea();
   }
@@ -45,6 +46,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
         await rdb?.executeSql(SettingsDBHelper.CURRENT_SECURE_TABLE_CREATE_PREFIX + event.code +
         SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+        Log.info('creat settings data table success!')
         // 加载用户数据表的默认值
         try {
           let content = await SettingsDBHelper.getInstance().readDefaultFile() as IContent;

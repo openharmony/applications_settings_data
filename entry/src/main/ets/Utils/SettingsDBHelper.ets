@@ -51,7 +51,8 @@ const VALID_DB_LENGTH: number = 48;
 const SETTINGS_CLONED_STATUS: string = 'settingsClonedStatus';
 
 class SettingsDBHelper {
-  public static readonly SHARED_TABLE_CREATE_PREFIX = `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME}`;
+  public static readonly SHARED_TABLE_CREATE_PREFIX: string =
+    `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.TABLE_NAME}`;
   // 需要在在表名后拼接当前的userid
   public static readonly CURRENT_USER_TABLE_CREATE_PREFIX: string =
     `CREATE TABLE IF NOT EXISTS ${SettingsDataConfig.USER_TABLE_NAME}_`;
