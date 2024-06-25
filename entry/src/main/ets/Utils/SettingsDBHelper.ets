@@ -136,17 +136,17 @@ class SettingsDBHelper {
     this.isFirstStartup = await storage.get('isFirstStartup', true);
     storage = await dataStorage.getPreferences(this.context as Context, SETTINGSDATA_PREFERENCE_USER);
     this.maxUserNO = await storage.get('MAXUSERNO', 100);
-    Log.info(`firstStartupConfig isFirstStartUp = ${this.isFirstStartup} max user no: ${this.maxUserNO} rdbStore: ${this.rdbStore}`);
+    Log.info(`firstStartupConfig isFirstStartUp = ${this.isFirstStartup} max user no: ${this.maxUserNO}`);
     // 总是创建以下三张表 if not exists
     // 创建公共数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX +
-        SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+    SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     // 创建默认用户数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX +
-        this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+    this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     // 创建默认用户 secure 数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.CURRENT_SECURE_TABLE_CREATE_PREFIX +
-        this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+    this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     if (this.isFirstStartup) {
       // 推迟 this.loadDefaultSettingsData() =>after data migrate in DataExtAbility;
       await this.initialInsert(SettingsDataConfig.TABLE_NAME);
@@ -173,17 +173,18 @@ class SettingsDBHelper {
   }
 
   public static getInstance(): SettingsDBHelper {
-    if(GlobalContext.dbHelper === undefined){
-      GlobalContext.dbHelper = new SettingsDBHelper();
+    GlobalContext.getContext().getObject('settingsDBHelper') as SettingsDBHelper;
+    if(!GlobalContext.getContext().getObject('settingsDBHelper')){
+      GlobalContext.getContext().setObject('settingsDBHelper', new SettingsDBHelper());
     }
-    return GlobalContext.dbHelper as SettingsDBHelper;
+    return GlobalContext.getContext().getObject('settingsDBHelper') as SettingsDBHelper;
   }
 
   public async getRdbStore() {
     Log.info(`getRdbStore start this.rdbStore:${this.rdbStore}`);
     if (!this.rdbStore) {
       Log.info(`initRdbStore ready to start`);
-      return  await (GlobalContext.dbHelper as SettingsDBHelper).initRdbStore();
+      return  await (GlobalContext.getContext().getObject('settingsDBHelper') as SettingsDBHelper).initRdbStore();
       // return await globalThis.settingsDBHelper.initRdbStore();
     }
     return this.rdbStore
