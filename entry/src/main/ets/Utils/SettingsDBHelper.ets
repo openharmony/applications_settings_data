@@ -136,7 +136,7 @@ class SettingsDBHelper {
     this.isFirstStartup = await storage.get('isFirstStartup', true);
     storage = await dataStorage.getPreferences(this.context as Context, SETTINGSDATA_PREFERENCE_USER);
     this.maxUserNO = await storage.get('MAXUSERNO', 100);
-    Log.info(`firstStartupConfig isFirstStartUp = ${this.isFirstStartup} max user no: ${this.maxUserNO}`);
+    Log.info(`firstStartupConfig isFirstStartUp = ${this.isFirstStartup} max user no: ${this.maxUserNO} rdbStore: ${this.rdbStore}`);
     // 总是创建以下三张表 if not exists
     // 创建公共数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX +

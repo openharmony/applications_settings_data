@@ -39,8 +39,10 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
 
     this.init();
     let rdb = await SettingsDBHelper.getInstance().getRdbStore();
+    Log.info(`rdb ${rdb}`)
     switch (event.event) {
       case commonEventManager.Support.COMMON_EVENT_USER_ADDED:
+        Log.info(`case1 ${event.event}`)
         // 创建对应用户的数据表
         await rdb?.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX + event.code +
         SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
@@ -69,11 +71,13 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         }
         break
       case commonEventManager.Support.COMMON_EVENT_USER_REMOVED:
+        Log.info(`case2 ${event.event}`)
         // 删除对应用户的数据表
         rdb?.executeSql(CURRENT_USER_TABLE_DROP + event.code, []);
         rdb?.executeSql(CURRENT_SECURE_USER_TABLE_DROP + event.code, []);
         break
       default:
+        Log.info(`default ${event.event}`)
         break
     }
   }
