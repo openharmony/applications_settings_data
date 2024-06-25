@@ -31,7 +31,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
     this.context.area = SettingsDBHelper.getInstance().getArea();
   }
   async onReceiveEvent(event: CommonEventData) {
-    if (!event || event.code) {
+    if (!event || !event.code) {
       Log.error('invalid parameters')
       return;
     }
