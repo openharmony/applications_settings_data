@@ -72,7 +72,7 @@ class SettingsDBHelper {
 
   private constructor() {
     this.rdbStore = undefined;
-    this.context = GlobalContext.thisContext as Context;
+    this.context = GlobalContext.getContext().getObject('abilityContext') as Context;
     Log.info('context start'+ JSON.stringify(this.context));
   }
 
@@ -140,13 +140,13 @@ class SettingsDBHelper {
     // 总是创建以下三张表 if not exists
     // 创建公共数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.SHARED_TABLE_CREATE_PREFIX +
-    SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     // 创建默认用户数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX +
-    this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     // 创建默认用户 secure 数据表
     await this.rdbStore?.executeSql(SettingsDBHelper.CURRENT_SECURE_TABLE_CREATE_PREFIX +
-    this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
+      this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     if (this.isFirstStartup) {
       // 推迟 this.loadDefaultSettingsData() =>after data migrate in DataExtAbility;
       await this.initialInsert(SettingsDataConfig.TABLE_NAME);
@@ -159,15 +159,14 @@ class SettingsDBHelper {
 
   public async initRdbStore() {
     Log.info('call initRdbStore start');
-    let  rdbStore = await relationalStore.getRdbStore(
-      this.context as Context, { name: SettingsDataConfig.DB_NAME,securityLevel:1 });
+    let  rdbStore = await relationalStore.getRdbStore(this.context as Context, {
+      name: SettingsDataConfig.DB_NAME,
+      securityLevel:1
+    });
     if(rdbStore){
       this.rdbStore = rdbStore;
     }
-
-
     await this.firstStartupConfig();
-
     Log.info('call initRdbStore end');
     return this.rdbStore;
   }
