@@ -77,7 +77,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         rdb?.executeSql(CURRENT_SECURE_USER_TABLE_DROP + event.code, []);
         break
       default:
-        Log.info(`default ${event.event}`)
+        Log.info(`settingsdata default ${event.event}`)
         break
     }
   }
