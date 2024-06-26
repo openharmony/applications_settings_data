@@ -180,9 +180,8 @@ class SettingsDBHelper {
   }
 
   public async getRdbStore() {
-    Log.info(`getRdbStore start this.rdbStore:${this.rdbStore}`);
+    Log.info('call getRdbStore start');
     if (!this.rdbStore) {
-      Log.info(`initRdbStore ready to start`);
       return  await (GlobalContext.getContext().getObject('settingsDBHelper') as SettingsDBHelper).initRdbStore();
       // return await globalThis.settingsDBHelper.initRdbStore();
     }

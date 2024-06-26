@@ -26,7 +26,7 @@ const TAG: string = 'UserChangeStaticSubscriber : '
 
 export default class UserChangeStaticSubscriber extends StaticSubscriberExtensionAbility {
   private init() {
-    Log.info('UserChangeStaticSubscriber start!')
+    Log.info('UserChangeStaticSubscriber start')
     GlobalContext.getContext().setObject('abilityContext', this.context);
     this.context.area = SettingsDBHelper.getInstance().getArea();
   }
@@ -39,16 +39,14 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
 
     this.init();
     let rdb = await SettingsDBHelper.getInstance().getRdbStore();
-    Log.info(`rdb ${rdb}`)
     switch (event.event) {
       case commonEventManager.Support.COMMON_EVENT_USER_ADDED:
-        Log.info(`case1 ${event.event}`)
         // 创建对应用户的数据表
         await rdb?.executeSql(SettingsDBHelper.CURRENT_USER_TABLE_CREATE_PREFIX + event.code +
         SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
         await rdb?.executeSql(SettingsDBHelper.CURRENT_SECURE_TABLE_CREATE_PREFIX + event.code +
         SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
-        Log.info('creat settings data table success!')
+        Log.info('create settings data table success!')
         // 加载用户数据表的默认值
         try {
           let content = await SettingsDBHelper.getInstance().readDefaultFile() as IContent;
@@ -71,13 +69,11 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         }
         break
       case commonEventManager.Support.COMMON_EVENT_USER_REMOVED:
-        Log.info(`case2 ${event.event}`)
         // 删除对应用户的数据表
         rdb?.executeSql(CURRENT_USER_TABLE_DROP + event.code, []);
         rdb?.executeSql(CURRENT_SECURE_USER_TABLE_DROP + event.code, []);
         break
       default:
-        Log.info(`settingsdata default ${event.event}`)
         break
     }
   }
