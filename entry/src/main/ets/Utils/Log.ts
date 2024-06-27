@@ -14,9 +14,21 @@
  */
 
 import hiLog from '@ohos.hilog';
+import ExtensionAbility from '@ohos.app.ability.ExtensionAbility';
 
 const DOMAIN: number = 0x0500;
 const TAG = 'SettingsData';
+
+/**
+ *  升级到4.0.10 删除：
+ */
+export interface CommonEventData{
+  event: string;
+  bundleName?: string;
+  code?: number;
+  data?: string;
+  parameters?: { [key: string]: string | number | boolean | null | undefined };
+}
 
 /**
  * Basic log class

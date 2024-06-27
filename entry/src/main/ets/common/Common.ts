@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,14 @@
  * limitations under the License.
  */
 
-interface SettingsDataBaseConfig {
-  DB_NAME: string;
-  TABLE_NAME: string;
-  USER_TABLE_NAME: string;
-  SECURE_TABLE_NAME: string;
-  FIELD_ID: string;
-  FIELD_KEYWORD: string;
-  FIELD_VALUE: string;
+export interface IContent {
+  settings: Array<Map<string, string>>;
+  user: Array<Map<string, string>>;
+  userSecure: Array<Map<string, string>>;
 }
-const SettingsDataConfig: SettingsDataBaseConfig = {
-  DB_NAME: 'settingsdata.db',
-  TABLE_NAME: 'SETTINGSDATA',
-  USER_TABLE_NAME: 'USER_SETTINGSDATA',
-  SECURE_TABLE_NAME: 'USER_SETTINGSDATA_SECURE',
-  FIELD_ID: 'ID',
-  FIELD_KEYWORD: 'KEYWORD',
-  FIELD_VALUE: 'VALUE'
-};
 
-export default SettingsDataConfig;
+export enum TableType {
+  SETTINGS,
+  USER,
+  USER_SECURE
+}
