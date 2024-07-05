@@ -69,7 +69,7 @@ export default class UserChangeStaticSubscriber extends StaticSubscriberExtensio
         }
         break
       case commonEventManager.Support.COMMON_EVENT_USER_REMOVED:
-        // 删除对应用户的数据表
+        // 删除对应用户数据表
         rdb?.executeSql(CURRENT_USER_TABLE_DROP + event.code, []);
         rdb?.executeSql(CURRENT_SECURE_USER_TABLE_DROP + event.code, []);
         break

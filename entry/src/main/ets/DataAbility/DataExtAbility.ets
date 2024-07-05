@@ -28,6 +28,7 @@ import SettingsDataConfig from '../Utils/SettingsDataConfig';
 import SettingsDBHelper from '../Utils/SettingsDBHelper';
 import { Log } from '../Utils/Log';
 import { GlobalContext}  from '../Utils/GlobalContext';
+import contextConstant from '@ohos.app.ability.contextConstant';
 
 
 interface  IRequest {
@@ -51,18 +52,26 @@ let err:BusinessError = {'code':-1} as BusinessError;
 
 export default class DataExtAbility extends DataShareExtensionAbility {
   onCreate(want: Want) {
-    GlobalContext.thisContext =  this.context;
+    GlobalContext.getContext().setObject('abilityContext', this.context);
+    // database move to DE area;
+    this.context.area = contextConstant.AreaMode.EL2;
+    this.context.area = SettingsDBHelper.getInstance().getArea();
     this.onInitialized();
     Log.info('onCreate  context' + JSON.stringify(this.context));
   }
 
   onInitialized() {
     Log.info('onInitialize start');
-    let context = GlobalContext.thisContext as common.Context;
+    let context = GlobalContext.getContext().getObject('abilityContext') as Context;
     Log.info('onInitialize start context: ' + JSON.stringify(this.context));
-    if (context !== undefined) {
+    if (context !== null) {
       SettingsDBHelper.getInstance().getRdbStore().then((rdb: relationalStore.RdbStore|undefined) => {
         rdbStore = rdb;
+        if (!rdbStore) {
+          Log.error('onInitialized: get rdb store failed!');
+          return;
+        }
+        Log.info('onInitialized: get rdb store succeed!');
         for (let i = 0; i < requests.length; i++) {
           let opt: string = requests[i].operation;
           let columns: string[] = requests[i].columns;
