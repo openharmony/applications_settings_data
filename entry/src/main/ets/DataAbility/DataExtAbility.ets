@@ -71,7 +71,7 @@ export default class DataExtAbility extends DataShareExtensionAbility {
           Log.error('onInitialized: get rdb store failed!');
           return;
         }
-        Log.info('onInitialized: get rdb store succeed!')
+        Log.info('onInitialized: get rdb store succeed!');
         for (let i = 0; i < requests.length; i++) {
           let opt: string = requests[i].operation;
           let columns: string[] = requests[i].columns;
