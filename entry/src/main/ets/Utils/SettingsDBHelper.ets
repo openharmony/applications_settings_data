@@ -148,7 +148,9 @@ class SettingsDBHelper {
     await this.rdbStore?.executeSql(SettingsDBHelper.CURRENT_SECURE_TABLE_CREATE_PREFIX +
       this.DEFAULT_USER_ID + SettingsDBHelper.TABLE_CREATE_SUFFIX, []);
     if (this.isFirstStartup) {
-      // 推迟 this.loadDefaultSettingsData() =>after data migrate in DataExtAbility;
+      Log.info('loadDefaultSettingsData begin');
+      this.loadDefaultSettingsData();
+      Log.info('loadDefaultSettingsData finish');
       await this.initialInsert(SettingsDataConfig.TABLE_NAME);
       await this.initialInsert(SettingsDataConfig.USER_TABLE_NAME + '_' + this.DEFAULT_USER_ID);
       await this.initialInsert(SettingsDataConfig.SECURE_TABLE_NAME + '_' + this.DEFAULT_USER_ID);
