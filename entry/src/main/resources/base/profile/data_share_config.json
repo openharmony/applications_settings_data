@@ -1,7 +1,8 @@
 {
     "tableConfig": [
       {
-        "uri": "*"
+        "uri": "*",
+        "crossUserMode": 1
       },
       {
         "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA",
@@ -11,5 +12,6 @@
         "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA",
         "crossUserMode": 2
       }
-    ]
+    ],
+    "storeMetaDataFromUri":true
 }
