@@ -10,7 +10,11 @@
       },
       {
         "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA",
-        "crossUserMode": 2
+        "crossUserMode": 1
+      },
+      {
+        "uri": "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_SECURE",
+        "crossUserMode": 1
       }
     ],
     "storeMetaDataFromUri":true
