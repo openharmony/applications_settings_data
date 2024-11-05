@@ -97,41 +97,18 @@ this.title = this.$r('app.string.hello_world');
 1. 拷贝OpenHarmony标准版 工程的 OpenHarmony\signcenter_tool 目录到操作目录
 2. 拷贝SettingsData 工程的 signature\settings.p7b 到该目录下
 #### 签名文件的配置
-打开项目工程，选择 File → Project Structure
-
-![](figures/signature_1.png)
-
-选择 Project → Signing Configs，将对应的签名文件配置如下，完成后点击Apply，再点击OK。
-
-![](figures/signature_2.png)
+打开项目工程，选择 File → Project Structure , 选择 Project → Signing Configs，将对应的签名文件配置如下，完成后点击Apply，再点击OK。
 
 ### 应用安装
 配置 hdc：
-进入SDK目录中的toolchains文件夹下，获取文件路径：
-
-![](figures/screenshot-20210521-105407.png)
+进入SDK目录中的toolchains文件夹下，获取文件路径，并将该路径配置到环境变量中。
 
 > 注意，此处的hdc.exe如果版本较老，可能不能正常使用，需要获取新的hdc.exe文件  
 > hdc命令介绍与下载详见：[hdc仓库地址](https://gitee.com/openharmony/developtools_hdc_standard)
 
-
-并将此路径配置到环境变量中：
-
-![](figures/screenshot-20210521-111223.png)
-
 重启电脑使环境变量生效
 
-连接开发板，打开cmd命令窗口，执行hdc list targets，弹出窗口如下：
-
-![](figures/cmd1.png)
-
-等待一段时间后，窗口出现如下打印，可回到输入 hdc list targets 的命令窗口继续操作:
-
-![](figures/cmd2.png)
-
-再次输入hdc list targets，出现如下结果，说明hdc连接成功
-
-![](figures/cmd3.png)
+连接开发板，打开cmd命令窗口，执行hdc list targets，查看连接设备，出现设备的话，说明hdc连接成功
 
 获取读写权限：
 
