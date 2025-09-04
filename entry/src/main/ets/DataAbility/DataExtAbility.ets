@@ -125,7 +125,6 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         };
         Log.info('insert request = ' + JSON.stringify(request));
         requests.push(request);
-        callback(err, ret);
       } else {
         rdbStore.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
           Log.info('insert result: ' + ret);
@@ -161,7 +160,6 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         };
         Log.info('update request = ' + JSON.stringify(request));
         requests.push(request);
-        callback(err, ret);
       } else {
         rdbStore.update(SettingsDataConfig.TABLE_NAME, value, predicates , (err, ret)=> {
           Log.info('update result: ' + ret);
