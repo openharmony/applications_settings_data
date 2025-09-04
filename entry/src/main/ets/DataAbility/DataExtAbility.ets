@@ -189,7 +189,6 @@ export default class DataExtAbility extends DataShareExtensionAbility {
       let request: IRequest = {operation:'query', columns : columns, predicates : predicates, value:null};
       Log.info('query request = ' + JSON.stringify(request));
       requests.push(request);
-      callback(err, {'_napiwrapper':{}});
     } else {
       rdbStore.query(SettingsDataConfig.TABLE_NAME, predicates, columns,
         (err:BusinessError, resultSet:relationalStore.ResultSet)=> {
