@@ -35,7 +35,9 @@ interface  IRequest {
   operation:string ;
   columns:string[];
   predicates:dataSharePredicates.DataSharePredicates|relationalStore.RdbPredicates|null;
-  value:relationalStore.ValuesBucket|null
+  value:relationalStore.ValuesBucket|null;
+  callback: AsyncCallback<number | Object>;
+  uri: string;
 }
 let rdbStore:relationalStore.RdbStore|undefined = undefined;
 let requests:IRequest[] = [];
@@ -76,26 +78,40 @@ export default class DataExtAbility extends DataShareExtensionAbility {
           let opt: string = requests[i].operation;
           let columns: string[] = requests[i].columns;
           let predicates = (requests[i].predicates) as dataSharePredicates.DataSharePredicates;
+          let callback = requests[i].callback;
+          let uri = requests[i].uri;
 
           let value: relationalStore.ValuesBucket|null = requests[i].value;
           if (opt == 'insert') {
+            Log.info('onInitialized insert start');
             if(value){
               rdbStore?.insert(SettingsDataConfig.TABLE_NAME, value,  (err, ret) => {
                 Log.info('onInitialized insert ret: ' + ret);
+                if (callback) {
+                  callback(err, ret);
+                }
               });
             }
           } else if (opt == 'query') {
+            Log.info('onInitialized query start');
             if(predicates){
               rdbStore?.query(SettingsDataConfig.TABLE_NAME, predicates, columns, (
                 err: BusinessError, resultSet: relationalStore.ResultSet) => {
                 Log.info('onInitialized query ret: ' + JSON.stringify(resultSet));
+                if (callback) {
+                  callback(err, resultSet);
+                }
               });
             }
 
           } else if (opt == 'update') {
+            Log.info('onInitialized update start');
             if(value){
               rdbStore?.update(SettingsDataConfig.TABLE_NAME, value, predicates, (err, ret) => {
                 Log.info('onInitialized update ret: ' + ret);
+                if (callback) {
+                  callback(err, ret);
+                }
               });
             }
           }
@@ -121,7 +137,12 @@ export default class DataExtAbility extends DataShareExtensionAbility {
 
       if (rdbStore == null) {
         let request: IRequest = {
-          operation: 'insert', columns: [], predicates: null, value: value
+          operation: 'insert',
+          columns: [],
+          predicates: null,
+          value: value,
+          callback: callback as AsyncCallback<number | Object>,
+          uri: uri
         };
         Log.info('insert request = ' + JSON.stringify(request));
         requests.push(request);
@@ -156,7 +177,12 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         value[SettingsDataConfig.FIELD_KEYWORD]?.toString(), value[SettingsDataConfig.FIELD_VALUE]?.toString());
       if (rdbStore == null) {
         let request : IRequest = {
-          operation: 'update', columns: [], predicates: predicates, value: value
+          operation: 'update',
+          columns: [],
+          predicates: predicates,
+          value: value,
+          callback: callback as AsyncCallback<number | Object>,
+          uri: uri
         };
         Log.info('update request = ' + JSON.stringify(request));
         requests.push(request);
@@ -184,7 +210,14 @@ export default class DataExtAbility extends DataShareExtensionAbility {
         predicates: dataSharePredicates.DataSharePredicates, columns: string[], callback: AsyncCallback<Object>) {
     Log.info( 'query start uri:' + uri);
     if (rdbStore == null) {
-      let request: IRequest = {operation:'query', columns : columns, predicates : predicates, value:null};
+      let request: IRequest = {
+        operation:'query',
+        columns : columns,
+        predicates : predicates,
+        value:null,
+        callback: callback,
+        uri: uri
+      };
       Log.info('query request = ' + JSON.stringify(request));
       requests.push(request);
     } else {
