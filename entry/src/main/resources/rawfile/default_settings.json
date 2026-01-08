@@ -27,6 +27,10 @@
     {
       "name": "ota_disable_automatic_update",
       "value": "1"
+    },
+    {
+      "name": "device_provisioned",
+      "value": "1"
     }
   ]
 }
