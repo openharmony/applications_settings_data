@@ -27,6 +27,16 @@
     {
       "name": "ota_disable_automatic_update",
       "value": "1"
+    },
+    {
+      "name": "device_provisioned",
+      "value": "1"
+      }
+    ],
+    "userSecure": [
+    {
+      "name": "user_setup_complete",
+      "value": "1"
     }
   ]
 }
