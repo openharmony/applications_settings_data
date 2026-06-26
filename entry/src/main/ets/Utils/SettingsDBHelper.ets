@@ -202,7 +202,7 @@ class SettingsDBHelper {
       case TableType.USER:
         this.loadDefaultTaleData(content.user, TableType.USER, userId);
         return;
-      case TableType.SETTINGS:
+      case TableType.USER_SECURE:
         this.loadDefaultTaleData(content.userSecure, TableType.USER_SECURE, userId);
         return;
       default:
