@@ -233,35 +233,29 @@ export default class DataExtAbility extends DataShareExtensionAbility {
   private DoSystemSetting(settingsKey: string|undefined, settingsValue: string|undefined) {
     switch (settingsKey) {
       case SETTINGS_AUDIO_RINGTONE:
+      case SETTINGS_AUDIO_MEDIA:
+      case SETTINGS_AUDIO_VOICE_CALL: {
+        const valueText: string = String(settingsValue ?? '');
+        if (!/^\d+$/.test(valueText)) {
+          Log.info('settings audio volume leftover value = ' + valueText);
+          break;
+        }
+        const volume: number = Number.parseInt(valueText, 10);
         try {
           let volumeType = Audio.AudioVolumeType.RINGTONE;
-          Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
-            Log.info('settings Promise returned to indicate a successful RINGTONE setting.')
+          if (settingsKey === SETTINGS_AUDIO_MEDIA) {
+            volumeType = Audio.AudioVolumeType.MEDIA;
+          } else if (settingsKey === SETTINGS_AUDIO_VOICE_CALL) {
+            volumeType = Audio.AudioVolumeType.VOICE_CALL;
+          }
+          Audio.getAudioManager().setVolume(volumeType, volume).then(() => {
+            Log.info('settings Promise returned to indicate a successful audio volume setting.')
           });
         } catch (err) {
-          Log.info('settings RINGTONE failed error = ' + JSON.stringify(err));
+          Log.info('settings audio volume failed error = ' + JSON.stringify(err));
         }
-        break
-      case SETTINGS_AUDIO_MEDIA:
-        try {
-          let volumeType = Audio.AudioVolumeType.MEDIA;
-          Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
-            Log.info('settings Promise returned to indicate a successful MEDIA setting.')
-          });
-        } catch (err) {
-          Log.info('settings MEDIA failed error = ' + JSON.stringify(err));
-        }
-        break
-      case SETTINGS_AUDIO_VOICE_CALL:
-        try {
-          let volumeType = Audio.AudioVolumeType.VOICE_CALL;
-          Audio.getAudioManager().setVolume(volumeType, Number(settingsValue)).then(() => {
-            Log.info('settings Promise returned to indicate a successful VOICE_CALL setting.')
-          });
-        } catch (err) {
-          Log.info('settings VOICE_CALL failed error = ' + JSON.stringify(err));
-        }
-        break
+        break;
+      }
       default:
         Log.info(settingsKey + ' key is not audio');
         break
